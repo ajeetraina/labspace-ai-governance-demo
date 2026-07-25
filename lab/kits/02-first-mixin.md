@@ -85,7 +85,7 @@ sbx run claude --kit ./kits/docker-review/ --name kits-lab
 
 Once Claude loads, ask it:
 
-```text no-run-button
+```console terminal-id=host
 Review the Dockerfile in this workspace
 ```
 

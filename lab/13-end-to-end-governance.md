@@ -205,16 +205,19 @@ Manage MCP servers
 
 The Cedar policy from Section 06 permits exactly one tool - `get_me` on `github-official`. Because MCP governance is **default-deny**, an invocation of *any* other server or tool is refused at the gateway. Point `sbx` at the hosted gateway, register a server the policy doesn't allow, and attach it:
 
-```bash terminal-id=host
+```bash no-run-button
 export SBX_MCP_URL=https://gateway.docker.com
 sbx daemon stop                                    # restarts on the next sbx call, inheriting the URL
 sbx mcp add notion --url https://mcp.notion.com/mcp --skip_auth
+```
+
+```bash terminal-id=host
 sbx run claude --static-mcp notion
 ```
 
 Inside the agent, ask it to use the server:
 
-```text no-run-button
+```console terminal-id=host
 Use the notion tools to list my recent documents.
 ```
 

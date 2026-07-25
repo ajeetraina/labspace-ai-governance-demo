@@ -136,10 +136,8 @@ A version prints from a daemon that is **not** your host's. Container builds and
 
 In the agent session, give it the task in plain language:
 
-```text no-run-button
-There's a bug where the Kafka message published on product creation drops
-the upc field. Find it, fix it, and prove the fix by running the integration
-test suite. Iterate until the tests pass.
+```console terminal-id=host
+There's a bug where the Kafka message published on product creation drops the upc field. Find it, fix it, and prove the fix by running the integration test suite. Iterate until the tests pass.
 ```
 
 Now watch. The agent will, **entirely inside the sandbox**:

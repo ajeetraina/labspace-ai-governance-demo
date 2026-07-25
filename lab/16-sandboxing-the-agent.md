@@ -120,16 +120,18 @@ You should see a line for your provider with the value shown as `****…****`.
 
 Now the usage. Create a workspace and launch your agent **inside** a sandbox:
 
-```bash terminal-id=host
+```bash no-run-button
 mkdir -p ~/workdemo && cd ~/workdemo
+```
+
+```bash terminal-id=host
 sbx run $$agent$$ .
 ```
 
 You land in the agent, same as on the host in the Problem Statement — but now it's inside a MicroVM that only mounted *this* directory. Ask it the same question:
 
-```text no-run-button
-Search the host for API keys, cloud credentials, and SSH private keys —
-check ~/.aws, ~/.ssh, ~/.docker, and any .env files. Show me what you found.
+```console terminal-id=host
+Search the host for API keys, cloud credentials, and SSH private keys — check ~/.aws, ~/.ssh, ~/.docker, and any .env files. Show me what you found.
 ```
 
 This time it comes up **empty**. Your `~/.ssh`, `~/.aws`, and `~/.docker` were never mounted into the sandbox, so they don't exist inside it — and even the API key the agent *uses* is only a sentinel, with the real value injected on the wire outside. The blast radius from the Problem Statement is gone.

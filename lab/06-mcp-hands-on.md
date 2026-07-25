@@ -286,12 +286,18 @@ Two other registration modes work the same way against either gateway:
 > [!WARNING]
 > Registering only *records* the server — attaching is separate. The attach flag is **`--static-mcp`**, not `--mcp` (`--mcp` fails with `unknown flag`).
 
-```bash terminal-id=host
+```bash no-run-button
 # Bring up a sandbox with the server attached from the start
 cd ~/workdemo
-sbx run claude --static-mcp local-wiki
+```
 
-# ...or load it into a sandbox that's already running
+```bash terminal-id=host
+sbx run claude --static-mcp local-wiki
+```
+
+...or load it into a sandbox that's already running instead:
+
+```bash terminal-id=host
 sbx mcp load local-wiki
 ```
 
@@ -318,9 +324,8 @@ Manage MCP servers
 
 Now make the agent actually call a tool. Esc out of `/mcp` and prompt it:
 
-```text no-run-button
-Use the wiki tools to search Wikipedia for "Eiffel Tower", then give me the
-summary and 3 key facts. Tell me which tool(s) you called.
+```console terminal-id=host
+Use the wiki tools to search Wikipedia for "Eiffel Tower", then give me the summary and 3 key facts. Tell me which tool(s) you called.
 ```
 
 A tool-call line such as `mcp-gateway · search_wikipedia` (approve it if prompted) and an answer drawn from the live article confirm the **complete chain**: `sbx → mcp-gateway → local-wiki → Wikipedia`, every call through the governed gateway.
