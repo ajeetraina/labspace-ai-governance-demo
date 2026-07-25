@@ -52,13 +52,16 @@ scenarios:
       output: []
 
   # ── Setup ────────────────────────────────────────────────────────────────
+  # Simulated output. Track the real sbx release (github.com/docker/sbx-releases)
+  # and bump the version here when it moves — the number is cosmetic to the sim.
   - id: sbx-version
     when:
       command: [sbx, version]
     then:
       output:
-        - "Docker Sandboxes (sbx) v0.10.3"
-        - "microVM engine: ready"
+        - "Docker Sandboxes (sbx)"
+        - " Version:  v0.37.0"
+        - " Commit:   9f3a2c1"
 
   # ── Policy sync (Policy Model / Network / Governance API) ─────────────────
   - id: sbx-policy-reset
