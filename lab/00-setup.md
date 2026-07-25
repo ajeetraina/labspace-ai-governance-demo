@@ -63,7 +63,7 @@ sbx version
 If it's not installed, then run the install command for your platform:
 
 :::conditionalDisplay{variable="os" requiredValue="mac"}
-```bash no-run-button
+```bash terminal-id=host
 brew install docker/tap/sbx
 ```
 :::
@@ -94,33 +94,33 @@ msiexec /i DockerSandboxes.msi /quiet
 :::conditionalDisplay{variable="os" requiredValue="linux"}
 On Ubuntu (`.deb`):
 
-```bash no-run-button
+```bash terminal-id=host
 sudo apt install ./DockerSandboxes-linux-amd64-ubuntu2604.deb
 ```
 
 On Rocky Linux 8 (`.rpm`):
 
-```bash no-run-button
+```bash terminal-id=host
 sudo dnf install ./DockerSandboxes-linux-amd64-rockylinux8.rpm
 ```
 
 Or use the Docker apt repository:
 
-```bash no-run-button
+```bash terminal-id=host
 curl -fsSL https://get.docker.com | sudo REPO_ONLY=1 sh
 sudo apt-get install docker-sbx
 ```
 
 Grant KVM access so sandboxes can boot, then reload your group membership:
 
-```bash no-run-button
+```bash terminal-id=host
 sudo usermod -aG kvm $USER && newgrp kvm
 ```
 :::
 
 Verify you're logged in to Docker:
 
-```bash no-run-button
+```bash terminal-id=host
 docker login
 ```
 

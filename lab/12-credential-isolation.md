@@ -75,7 +75,7 @@ Kits declare additional services in their `spec.yaml` (covered in the kit-author
 
 Launch a sandbox in your lab directory:
 
-```bash no-run-button
+```bash terminal-id=host
 mkdir -p ~/workdemo/creds && cd ~/workdemo/creds
 ```
 
@@ -109,7 +109,7 @@ curl -sS https://api.anthropic.com -o /dev/null -w "anthropic: %{http_code}\n"
 
 The request succeeds (the `allow AI services` rule from Section 03 covers it). Now exit and inspect the proxy log on the **host**:
 
-```bash no-run-button
+```bash terminal-id=host
 exit
 sbx policy log | grep -i anthropic | tail -5
 ```
@@ -120,13 +120,13 @@ You'll see the request to `api.anthropic.com` logged as `forward`. The proxy mat
 
 There are two ways to give the proxy your real credential. The quick one is an environment variable on the host:
 
-```bash no-run-button
+```bash terminal-id=host
 export ANTHROPIC_API_KEY=sk-ant-...   # plaintext, read from your shell session
 ```
 
 This works, but the key sits in your shell history and process environment in plaintext. The hardened path stores it in the OS keychain instead:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx secret set -g anthropic
 ```
 
@@ -137,7 +137,7 @@ sbx secret set -g anthropic
 
 List what's stored:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx secret ls
 ```
 
@@ -146,7 +146,7 @@ sbx secret ls
 
 OAuth is supported too, for providers that offer it - the sign-in happens on the host and the token never enters the sandbox:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx secret set -g openai --oauth
 ```
 
@@ -154,7 +154,7 @@ sbx secret set -g openai --oauth
 
 The built-in service map covers the big providers. For an internal API or any non-standard auth flow, declare a **custom secret** keyed to a host and an env var name:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx secret set-custom -g --host api.internal.example.com --env INTERNAL_API_KEY --value "$(cat ~/key.txt)"
 ```
 

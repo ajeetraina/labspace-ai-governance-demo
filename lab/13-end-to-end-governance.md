@@ -61,7 +61,7 @@ On an ungoverned laptop, all four succeed. Let's watch `$$org$$`'s governance st
 
 First, see what the agent *would* have on an ungoverned machine. The inventory script is **read-only** - it checks which secret stores exist and which exfil destinations are reachable, and transmits nothing. Fetch and run it on your **host** terminal:
 
-```bash no-run-button
+```bash terminal-id=host
 mkdir -p ~/workdemo/capstone && cd ~/workdemo/capstone
 curl -fsSL https://raw.githubusercontent.com/ajeetraina/labspace-docker-ai-governance/main/project/horror-story-agent/inventory.sh -o inventory.sh
 bash inventory.sh
@@ -91,7 +91,7 @@ Every `[FOUND]` line is a secret the agent could read. Every `[REACHABLE]` line 
 
 The strongest boundary fires before the agent runs. Try to launch a sandbox that mounts your SSH directory - exactly what a credential-stealing agent needs:
 
-```bash no-run-button
+```bash terminal-id=host
 cd ~/workdemo/capstone
 ```
 
@@ -113,7 +113,7 @@ resource=fs:path:/Users/<you>/.ssh
 
 Now start the sandbox the way it's meant to run - workspace only, no credential mounts:
 
-```bash no-run-button
+```bash terminal-id=host
 cd ~/workdemo/capstone
 ```
 
@@ -127,7 +127,7 @@ You land at a shell prompt inside the microVM. The next three attacks all run fr
 
 Re-run the same inventory script from **inside** the sandbox to compare against the host baseline. Copy it into the workspace first if it isn't already there:
 
-```bash no-run-button
+```bash terminal-id=host
 ls ~/.ssh ~/.aws 2>&1
 bash inventory.sh
 ```
@@ -141,7 +141,7 @@ bash inventory.sh
 
 Still inside the sandbox, have the "agent" try to ship data to a paste site, and compare against an allowed destination:
 
-```bash no-run-button
+```bash terminal-id=host
 curl -sS https://api.anthropic.com -o /dev/null -w "anthropic:  %{http_code}\n"
 curl -sS https://paste.ee        -o /dev/null -w "paste.ee:   %{http_code}\n"
 curl -sS https://example.com     -o /dev/null -w "example.com: %{http_code}\n"
@@ -161,7 +161,7 @@ example.com: 403
 
 The agent authenticates to Anthropic on every call - so surely the key is in its environment? Check:
 
-```bash no-run-button
+```bash terminal-id=host
 echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY"
 ```
 
@@ -175,7 +175,7 @@ ANTHROPIC_API_KEY=proxy-managed
 
 Exit the sandbox before the last attack:
 
-```bash no-run-button
+```bash terminal-id=host
 exit
 ```
 
@@ -187,7 +187,7 @@ The final move: reach a tool server the org never approved - a rogue MCP backend
 
 With the `mcp` subtree enabled (`SBX_MCP_URL` from Section 06), launch a sandbox with your **approved** server attached:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx run claude --static-mcp local-wiki
 ```
 
@@ -205,7 +205,7 @@ Manage MCP servers
 
 The Cedar policy from Section 06 permits exactly one tool - `get_me` on `github-official`. Because MCP governance is **default-deny**, an invocation of *any* other server or tool is refused at the gateway. Point `sbx` at the hosted gateway, register a server the policy doesn't allow, and attach it:
 
-```bash no-run-button
+```bash terminal-id=host
 export SBX_MCP_URL=https://gateway.docker.com
 sbx daemon stop                                    # restarts on the next sbx call, inheriting the URL
 sbx mcp add notion --url https://mcp.notion.com/mcp --skip_auth
@@ -227,7 +227,7 @@ Use the notion tools to list my recent documents.
 
 Clean up:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx mcp rm notion 2>/dev/null; sbx mcp ls
 ```
 

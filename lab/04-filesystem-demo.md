@@ -140,7 +140,7 @@ fi
 
 Then run the helper scoped to the filesystem domain:
 
-```bash no-run-button
+```bash terminal-id=host
 curl -fsSL https://raw.githubusercontent.com/ajeetraina/labspace-docker-ai-governance/main/labspace/assets/setup-policies.sh -o setup-policies.sh
 bash setup-policies.sh filesystem
 ```
@@ -207,7 +207,7 @@ The two rows that drive this demo are `Labspace AI Governance - filesystem / all
 
 Three separate workdirs so each `sbx run` creates a fresh sandbox without name collision. Two live under the allowed `~/workdemo`; the third is deliberately **outside** it to prove default-deny:
 
-```bash no-run-button
+```bash terminal-id=host
 mkdir -p ~/workdemo/test-1
 mkdir -p ~/workdemo/test-2
 mkdir -p /tmp/outside-workdemo
@@ -215,7 +215,7 @@ mkdir -p /tmp/outside-workdemo
 
 ## Step 4 - Test 1: Allowed workdir, no extra mounts
 
-```bash no-run-button
+```bash terminal-id=host
 cd ~/workdemo/test-1
 ```
 
@@ -225,7 +225,7 @@ sbx run shell .
 
 The sandbox starts and you land at the shell prompt. Write a file to prove the mount is real and read-write, then exit:
 
-```bash no-run-button
+```bash terminal-id=host
 echo "hello from the agent" > proof.txt
 exit
 ```
@@ -240,7 +240,7 @@ cat ~/workdemo/test-1/proof.txt
 
 ## Step 5 - Test 2: Allowed workdir + denied extra mount
 
-```bash no-run-button
+```bash terminal-id=host
 cd ~/workdemo/test-2
 ```
 
@@ -313,7 +313,7 @@ Same three-decision pattern as the network demo, just at a different layer:
 
 If you want to remove the test sandboxes between runs:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx ls
 ```
 

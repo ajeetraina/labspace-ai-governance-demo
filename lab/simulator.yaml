@@ -19,20 +19,53 @@ settings:
     boot: 700     # microVM boot feel
     sync: 500     # policy sync feel
     net: 400      # network round-trip feel
+    pull: 500     # image / package fetch feel
 
 defaults:
   unmatched:
     stderr:
-      - "This command is display-only in the simulator. Run the flagship demo commands (the ones with a Run button) to see enforcement in action."
+      - "This line isn't wired up in the simulator. The commands with a Run button are the ones to click."
     exit: 1
 
 scenarios:
-  # ── Silent shell helpers so compound setup lines (mkdir … && cd …) match ──
+  # ══ Shell helpers & continuation-line no-ops ═══════════════════════════════
+  # Multi-line commands (sbx … \, curl … \) submit as one entry and only the
+  # first line executes — but the validator checks every physical line, so each
+  # continuation flag needs a (silent) handler.
+  # `command:` matches literal leading tokens, so each continuation flag needs
+  # its own (silent) scenario.
+  - { id: noop-H,           when: { command: ["-H"] },           then: { output: [] } }
+  - { id: noop-d,           when: { command: ["-d"] },           then: { output: [] } }
+  - { id: noop-host,        when: { command: ["--host"] },        then: { output: [] } }
+  - { id: noop-env,         when: { command: ["--env"] },         then: { output: [] } }
+  - { id: noop-value,       when: { command: ["--value"] },       then: { output: [] } }
+  - { id: noop-placeholder, when: { command: ["--placeholder"] }, then: { output: [] } }
+  - { id: noop-kit,         when: { command: ["--kit"] },         then: { output: [] } }
+  - { id: noop-args,        when: { command: ["--args"] },        then: { output: [] } }
+  - { id: noop-command,     when: { command: ["--command"] },     then: { output: [] } }
+  - { id: noop-staticmcp,   when: { command: ["--static-mcp"] },  then: { output: [] } }
+  - { id: noop-name,        when: { command: ["--name"] },        then: { output: [] } }
+  - { id: noop-profile,     when: { command: ["--profile"] },     then: { output: [] } }
+
+  - id: export-noop
+    when: { command: [export] }
+    then: { output: [] }
+
+  - id: sleep-noop
+    when: { command: [sleep] }
+    then: { output: [] }
+
+  - id: kill-noop
+    when: { command: [kill] }
+    then: { output: [] }
+
+  - id: newgrp-noop
+    when: { command: [newgrp] }
+    then: { output: [] }
+
   - id: mkdir-noop
-    when:
-      command: [mkdir]
-    then:
-      output: []
+    when: { command: [mkdir] }
+    then: { output: [] }
 
   # cd into an unallowed path arms the default-deny for the next sandbox run.
   - id: cd-outside-workdemo
@@ -45,28 +78,39 @@ scenarios:
 
   # Any other cd is into an allowed/known path — clear the flag.
   - id: cd-noop
-    when:
-      command: [cd]
+    when: { command: [cd] }
     then:
       state: { workdir_denied: false }
       output: []
 
-  # ── Setup ────────────────────────────────────────────────────────────────
+  # ══ sbx: version & auth ════════════════════════════════════════════════════
   # Simulated output. Track the real sbx release (github.com/docker/sbx-releases)
   # and bump the version here when it moves — the number is cosmetic to the sim.
   - id: sbx-version
-    when:
-      command: [sbx, version]
+    when: { command: [sbx, version] }
     then:
       output:
         - "Docker Sandboxes (sbx)"
         - " Version:  v0.37.0"
         - " Commit:   9f3a2c1"
 
-  # ── Policy sync (Policy Model / Network / Governance API) ─────────────────
+  - id: sbx-login
+    when: { command: [sbx, login] }
+    then:
+      output:
+        - { text: "Authenticating with Docker Hub...", delay: sync }
+        - "[OK] Logged in as your-username"
+        - "[OK] Governance policies synced from your org."
+
+  - id: sbx-logout
+    when: { command: [sbx, logout] }
+    then:
+      output:
+        - "[OK] Logged out. Local policy cache cleared."
+
+  # ══ sbx policy: sync / list / log ══════════════════════════════════════════
   - id: sbx-policy-reset
-    when:
-      command: [sbx, policy, reset]
+    when: { command: [sbx, policy, reset] }
     then:
       state: { synced: true }
       output:
@@ -89,8 +133,7 @@ scenarios:
         - "local        all          default-allow-home                                     filesystem:write   inactive   ~/**  (corporate policy takes precedence)"
 
   - id: sbx-policy-ls
-    when:
-      command: [sbx, policy, ls]
+    when: { command: [sbx, policy, ls] }
     then:
       output:
         - "Governance: managed by your org"
@@ -104,8 +147,7 @@ scenarios:
         - "default-deny-all        network   local    deny       inactive   corporate policy takes precedence"
 
   - id: sbx-policy-log
-    when:
-      command: [sbx, policy, log]
+    when: { command: [sbx, policy, log] }
     then:
       output:
         - "Blocked requests:"
@@ -117,7 +159,13 @@ scenarios:
         - "SANDBOX      TYPE     HOST                  PROXY         RULE            REASON         LAST SEEN        COUNT"
         - "my-sandbox   network  api.anthropic.com     forward       domain-allowed                 10:15:23 29-Jan  42"
 
-  # ── Sandbox lifecycle ─────────────────────────────────────────────────────
+  - id: sbx-policy-generic
+    when: { command: [sbx, policy] }
+    then:
+      output:
+        - "[OK] Policy command completed. (see `sbx policy ls` / `sbx policy log`)"
+
+  # ══ sbx run: sandbox lifecycle ═════════════════════════════════════════════
   # Denied first: any explicit mount arg trips the deny-credentials rule.
   - id: sbx-run-shell-denied
     when:
@@ -146,8 +194,7 @@ scenarios:
       exit: 1
 
   - id: sbx-run-shell
-    when:
-      command: [sbx, run, shell]
+    when: { command: [sbx, run, shell] }
     then:
       state: { sandbox: { active: true }, workdir_denied: false }
       output:
@@ -156,17 +203,142 @@ scenarios:
         - "[OK] Network proxy attached — org policies enforced"
         - "You are now inside the sandbox. Run the curl tests, then `exit` to tear it down."
 
+  # Any other agent: claude / codex / gemini / $$agent$$, with or without --kit.
+  - id: sbx-run-agent
+    when: { command: [sbx, run] }
+    then:
+      state: { sandbox: { active: true }, workdir_denied: false }
+      output:
+        - { text: "Creating microVM sandbox...", delay: boot }
+        - "[OK] Workspace mounted · network proxy attached · org policies enforced"
+        - "[OK] Agent ready in the sandbox. Type a prompt, or `exit` to tear it down."
+
   - id: exit-sandbox
-    when:
-      command: [exit]
+    when: { command: [exit] }
     then:
       state: { sandbox: { active: false } }
       output:
         - "[OK] Sandbox torn down. Anything not written to the mounted workspace is gone."
 
-  # ── Verbose curl: the MITM proxy up close ────────────────────────────────
-  # Must precede the catch-all so `curl -v …` shows the proxy trace, not the
-  # three-line summary. Matched on the -v flag.
+  # ══ sbx secret ═════════════════════════════════════════════════════════════
+  - id: sbx-secret-setcustom
+    when: { command: [sbx, secret, set-custom] }
+    then:
+      output:
+        - "[OK] Custom secret stored. Sandboxes get a proxy-managed sentinel; the host proxy injects the real value."
+
+  - id: sbx-secret-set
+    when: { command: [sbx, secret, set] }
+    then:
+      output:
+        - "Enter secret value (input hidden): "
+        - "[OK] Secret stored in the OS keychain. Sandboxes receive a `proxy-managed` sentinel, never the raw key."
+
+  - id: sbx-secret-ls
+    when: { command: [sbx, secret, ls] }
+    then:
+      output:
+        - "SCOPE    NAME        HOST                  INJECTED-AS"
+        - "global   anthropic   api.anthropic.com     ANTHROPIC_API_KEY  (proxy-managed)"
+        - "global   openai      api.openai.com        OPENAI_API_KEY     (proxy-managed, oauth)"
+
+  # ══ sbx mcp ════════════════════════════════════════════════════════════════
+  - id: sbx-mcp-help
+    when:
+      command: [sbx, mcp]
+      args: { --help: true }
+    then:
+      output:
+        - "Manage MCP servers behind the Docker MCP Gateway."
+        - ""
+        - "Available Commands:"
+        - "  add       Register an MCP server"
+        - "  auth      Authorize MCP servers"
+        - "  inspect   Show MCP server details"
+        - "  load      Load an already-registered MCP server into a running sandbox"
+        - "  ls        List registered MCP servers"
+        - "  rm        Remove a registered MCP server"
+
+  - id: sbx-mcp-add
+    when: { command: [sbx, mcp, add] }
+    then:
+      output:
+        - "[OK] Registered MCP server 'local-wiki' behind the Docker MCP Gateway."
+
+  - id: sbx-mcp-ls
+    when: { command: [sbx, mcp, ls] }
+    then:
+      output:
+        - "NAME          TRANSPORT   STATUS         TOOLS"
+        - "local-wiki    stdio       ✔ ready        6"
+        - "mcp-gateway   http        ✔ connected    24"
+
+  - id: sbx-mcp-inspect
+    when: { command: [sbx, mcp, inspect] }
+    then:
+      output:
+        - "Server:    local-wiki"
+        - "Transport: stdio  (docker run -i --rm mcp/wikipedia-mcp)"
+        - "Tools:     search_wikipedia, get_article, get_summary, ..."
+        - "Gateway:   Docker MCP Gateway (governed control plane)"
+
+  - id: sbx-mcp-load
+    when: { command: [sbx, mcp, load] }
+    then:
+      output: ["[OK] Loaded 'local-wiki' into the running sandbox."]
+
+  - id: sbx-mcp-rm
+    when: { command: [sbx, mcp, rm] }
+    then:
+      output: ["[OK] Removed MCP server 'local-wiki'."]
+
+  - id: sbx-mcp-generic
+    when: { command: [sbx, mcp] }
+    then:
+      output: ["[OK] MCP command completed."]
+
+  # ══ sbx daemon / kit / exec / ls ═══════════════════════════════════════════
+  - id: sbx-daemon
+    when: { command: [sbx, daemon] }
+    then:
+      output:
+        - "[OK] sbx daemon stopped."
+        - "[OK] sbx daemon started (re-reads SBX_MCP_URL on next run)."
+
+  - id: sbx-kit-pack
+    when: { command: [sbx, kit, pack] }
+    then:
+      output: ["[OK] Packed kit → docker-review-1.0.zip"]
+
+  - id: sbx-kit-push
+    when: { command: [sbx, kit, push] }
+    then:
+      output: ["[OK] Pushed kit → ghcr.io/yourorg/docker-review:1.0"]
+
+  - id: sbx-kit-generic
+    when: { command: [sbx, kit] }
+    then:
+      output: ["[OK] Kit command completed."]
+
+  - id: sbx-exec
+    when: { command: [sbx, exec] }
+    then:
+      output: ["27.3.1"]
+
+  - id: sbx-ls
+    when: { command: [sbx, ls] }
+    then:
+      output:
+        - "NAME       AGENT    STATUS    WORKSPACE              UPTIME"
+        - "catalog    claude   running   ~/workdemo/catalog     3m12s"
+
+  # Safety net for any other sbx subcommand made runnable.
+  - id: sbx-generic
+    when: { command: [sbx] }
+    then:
+      output: ["[OK] Done."]
+
+  # ══ curl (order: verbose → governance API → downloads → enforcement) ════════
   - id: curl-verbose-paste
     when:
       command: [curl]
@@ -183,13 +355,43 @@ scenarios:
         - { text: "< HTTP/1.1 403 Forbidden", delay: net }
         - "* Request refused inside the MITM tunnel by rule 'deny exfiltration'."
 
-  # ── The three enforcement tests (Network / Credential / Monitoring) ───────
-  # One catch-all: the flagship block runs all three curls as a single submission,
-  # so a single scenario prints all three verdicts at once. Robust against curl's
-  # leading flags (which shift positional args) — no per-URL matching needed.
-  - id: curl-enforcement
+  # Governance API calls (curl -X GET/POST hub.docker.com …) → JSON response.
+  - id: curl-governance
     when:
       command: [curl]
+      args: { -X: { any: true } }
+    then:
+      output:
+        - { text: "HTTP/2 200", delay: net }
+        - "{"
+        - '  "data": ['
+        - '    { "id": "pol_06evsmp24r1pg71cm8500546pkbn", "name": "Labspace AI Governance - network", "type": "network" }'
+        - "  ],"
+        - '  "total": 1'
+        - "}"
+
+  # Installer / file downloads (curl -fsSL …) → progress bar.
+  - id: curl-download
+    when:
+      command: [curl]
+      args: { -fsSL: { any: true } }
+    then:
+      output:
+        - { text: "  % Total    % Received     Time  Current", delay: net }
+        - "######################################################################## 100.0%"
+        - "[OK] Fetched."
+
+  - id: curl-download2
+    when:
+      command: [curl]
+      args: { -fsS: { any: true } }
+    then:
+      output:
+        - "######################################################################## 100.0%"
+
+  # Catch-all: the flagship 3-curl block runs as one submission → all verdicts.
+  - id: curl-enforcement
+    when: { command: [curl] }
     then:
       output:
         - { text: "anthropic:   404   ← reached origin (allowed by 'allow AI services')", delay: net }
@@ -197,11 +399,164 @@ scenarios:
         - { text: "example.com: 403   ← refused by sbx proxy (default-deny)", delay: net }
         - "Non-403 means the request reached the origin (allowed); 403 means the sbx proxy refused it."
 
-  # ── Credential isolation ──────────────────────────────────────────────────
+  # ══ echo (credential sentinel first, then generic) ═════════════════════════
   - id: echo-cred-sentinel
     when:
       command: [echo]
       args: { 0: "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" }
     then:
+      output: ["ANTHROPIC_API_KEY=proxy-managed"]
+
+  - id: echo-generic
+    when:
+      command: [echo]
+      args: { 0: { any: true } }
+    then:
+      output: ["{{ args.0 }}"]
+
+  # ══ Docker CLI ═════════════════════════════════════════════════════════════
+  - id: docker-compose
+    when: { command: [docker, compose] }
+    then:
       output:
-        - "ANTHROPIC_API_KEY=proxy-managed"
+        - "[+] Running 2/2"
+        - " ✔ Network mcp-gateway-lab_default  Created"
+        - " ✔ Container mcp-gateway            Started"
+
+  - id: docker-login
+    when: { command: [docker, login] }
+    then:
+      output:
+        - "Authenticating with existing credentials..."
+        - "Login Succeeded"
+
+  - id: docker-generic
+    when: { command: [docker] }
+    then:
+      output: ["27.3.1"]
+
+  # ══ git ════════════════════════════════════════════════════════════════════
+  - id: git-clone
+    when: { command: [git, clone] }
+    then:
+      output:
+        - "Cloning into 'catalog-service-node'..."
+        - { text: "remote: Enumerating objects: 812, done.", delay: pull }
+        - "Receiving objects: 100% (812/812), 1.4 MiB, done."
+
+  - id: git-diff
+    when: { command: [git, diff] }
+    then:
+      output:
+        - "diff --git a/src/publishProductEvent.js b/src/publishProductEvent.js"
+        - "@@ -12,7 +12,7 @@ function publishProductEvent(product) {"
+        - "-  const payload = { id: product.id, name: product.name };"
+        - "+  const payload = { id: product.id, name: product.name, upc: product.upc };"
+
+  - id: git-generic
+    when: { command: [git] }
+    then:
+      output: ["[OK] git command completed."]
+
+  # ══ Installers ═════════════════════════════════════════════════════════════
+  - id: brew-install
+    when: { command: [brew] }
+    then:
+      output:
+        - { text: "==> Fetching docker/tap/sbx", delay: pull }
+        - "🍺  /opt/homebrew/Cellar/sbx/0.37.0: installed"
+
+  - id: winget-install
+    when: { command: [winget] }
+    then:
+      output:
+        - { text: "Found Docker Sandboxes [Docker.sbx]", delay: pull }
+        - "Successfully installed"
+
+  - id: scoop-install
+    when: { command: [scoop] }
+    then:
+      output: ["'sbx' (0.37.0) was installed successfully!"]
+
+  - id: sudo-install
+    when: { command: [sudo] }
+    then:
+      output:
+        - { text: "Reading package lists... Done", delay: pull }
+        - "Setting up docker-sbx (0.37.0) ..."
+
+  - id: msiexec-install
+    when: { command: [msiexec] }
+    then:
+      output: ["Installing DockerSandboxes.msi ... done."]
+
+  - id: ps-enable-feature
+    when: { command: [Enable-WindowsOptionalFeature] }
+    then:
+      output:
+        - "Path          :"
+        - "Online        : True"
+        - "RestartNeeded : True"
+
+  - id: ps-get-childitem
+    when: { command: [Get-ChildItem] }
+    then:
+      output:
+        - "    Directory: C:\\Users\\you\\AppData\\Local\\DockerSandboxes\\sandboxes\\logs"
+        - "Mode   LastWriteTime      Length Name"
+        - "-a---  7/25/2026 1:54 PM   2201k daemon.log"
+
+  # ══ Log inspection (fabricated but realistic) ══════════════════════════════
+  - id: jq-logs
+    when: { command: [jq] }
+    then:
+      output:
+        - '{"msg":"governance policy evaluation","allowed":false,"host":"paste.ee","policy_matched_rule":"deny exfiltration"}'
+        - '{"msg":"governance policy evaluation","allowed":false,"host":"example.com","policy_matched_rule":null,"policy_deny_reason":"default-deny"}'
+        - '{"msg":"governance policy evaluation","allowed":true,"host":"api.anthropic.com","policy_matched_rule":"allow AI services"}'
+
+  - id: tail-logs
+    when: { command: [tail] }
+    then:
+      output:
+        - "13:54:19  proxy  denied   host=paste.ee       rule=\"deny exfiltration\""
+        - "13:54:21  proxy  denied   host=example.com    rule=default-deny"
+        - "13:54:23  proxy  allowed  host=api.anthropic.com  rule=\"allow AI services\""
+
+  - id: grep-logs
+    when: { command: [grep] }
+    then:
+      output:
+        - "13:54:19  proxy  denied   host=paste.ee     rule=\"deny exfiltration\""
+        - "13:54:21  proxy  denied   host=example.com  rule=default-deny"
+
+  - id: ls-logs
+    when: { command: [ls] }
+    then:
+      output:
+        - "-rw-r--r--  1 you  staff   2.1M Jul 25 13:54 daemon.log"
+
+  - id: open-url
+    when: { command: [open] }
+    then:
+      output: ["Opening in your default browser..."]
+
+  # ══ Helper scripts / direct agent binaries ═════════════════════════════════
+  - id: bash-setup-policies
+    when: { command: [bash] }
+    then:
+      output:
+        - { text: "Provisioning AI Governance policies via the Docker Hub API...", delay: sync }
+        - "[OK] policy 'Labspace AI Governance - network'     rules: allow AI services, allow Docker services, deny exfiltration"
+        - "[OK] policy 'Labspace AI Governance - filesystem'  rules: allow workdemo, deny credentials"
+        - "[OK] Done. Run `sbx policy reset` to sync them to this machine."
+
+  - id: claude-direct
+    when: { command: [claude] }
+    then:
+      output: ["sk-ant-oat01-xxxxxxxxxxxxxxxxxxxxxxxxxxxx  (store this with `sbx secret set`)"]
+
+  - id: codex-direct
+    when: { command: [codex] }
+    then:
+      output: ["Launching Codex... (run inside a governed sbx sandbox with `sbx run codex .`)"]

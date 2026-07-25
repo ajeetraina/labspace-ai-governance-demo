@@ -26,7 +26,7 @@ flowchart LR
 
 Pass `--kit` more than once to stack kits on the same sandbox. Rules from all kits are merged: `caps.network.allow` entries are unioned, files from all kits are injected, install commands from all kits run in order.
 
-```bash no-run-button
+```bash terminal-id=host
 # two local kits
 sbx run claude --kit ./kits/claude-safe/ --kit ./kits/docker-review/
 
@@ -46,7 +46,7 @@ sbx run claude \
 
 `docker/sbx-kits-contrib` is the official community kits repository. Every kit in it has TCK tests running in CI. Load any kit directly without cloning:
 
-```bash no-run-button
+```bash terminal-id=host
 # VS Code in the browser with Claude Code extension
 sbx run claude --kit "git+https://github.com/docker/sbx-kits-contrib.git#dir=code-server"
 
@@ -61,19 +61,19 @@ Available kits in the repo: `code-server`, `amp`, `openclaw`, `nanoclaw`, `nanob
 Once your kit works locally, share it three ways:
 
 **ZIP file:**
-```bash no-run-button
+```bash terminal-id=host
 sbx kit pack ./kits/docker-review/ -o docker-review-1.0.zip
 ```
 
 **OCI registry:**
-```bash no-run-button
+```bash terminal-id=host
 sbx kit push ./kits/docker-review/ ghcr.io/yourorg/docker-review:1.0
 # teammates run:
 sbx run claude --kit ghcr.io/yourorg/docker-review:1.0
 ```
 
 **Git URL** (simplest for teams):
-```bash no-run-button
+```bash terminal-id=host
 # just commit the kit directory to your repo, then:
 sbx run claude --kit "git+https://github.com/yourorg/yourrepo.git#dir=kits/docker-review"
 ```

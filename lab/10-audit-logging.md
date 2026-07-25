@@ -35,7 +35,7 @@ That roadmap item shipped. Docker AI Governance now writes a separate, purpose-b
 
 Audit records only exist when governance is on:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx policy ls
 ```
 

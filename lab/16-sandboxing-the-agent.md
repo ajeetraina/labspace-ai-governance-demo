@@ -48,7 +48,7 @@ This section gets `sbx` ready, wires up your agent, and runs it sandboxed. (Inst
 
 Every exercise from here depends on `sbx` running on your host. **Do not skip this.**
 
-```bash no-run-button
+```bash terminal-id=host
 sbx version
 ```
 
@@ -56,7 +56,7 @@ Expected: a version string like `sbx 0.32.x`. If it's missing, jump back to **Se
 
 Make sure you're logged in so org policy and secrets are available:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx login
 ```
 
@@ -80,7 +80,7 @@ This lab works with any mainstream coding agent. Pick the provider whose API key
 
 You'll run **Claude Code** inside the sandbox, authenticated to Anthropic. Store your API key:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx secret set -g anthropic
 ```
 :::
@@ -90,7 +90,7 @@ sbx secret set -g anthropic
 
 You'll run **Codex** inside the sandbox, authenticated to OpenAI. Store your API key:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx secret set -g openai
 ```
 :::
@@ -100,14 +100,14 @@ sbx secret set -g openai
 
 You'll run **Gemini CLI** inside the sandbox, authenticated to Google. Store your API key:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx secret set -g google
 ```
 :::
 
 Verify the secret was stored (the value is masked):
 
-```bash no-run-button
+```bash terminal-id=host
 sbx secret ls
 ```
 
@@ -120,7 +120,7 @@ You should see a line for your provider with the value shown as `****…****`.
 
 Now the usage. Create a workspace and launch your agent **inside** a sandbox:
 
-```bash no-run-button
+```bash terminal-id=host
 mkdir -p ~/workdemo && cd ~/workdemo
 sbx run $$agent$$ .
 ```

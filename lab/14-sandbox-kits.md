@@ -83,7 +83,7 @@ description: Ships a Claude Code skill that reviews Dockerfiles
 
 A teammate runs it - stacked on the built-in agent - with a single flag:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx run claude --kit ./kits/docker-review/
 ```
 

@@ -62,7 +62,7 @@ credentials:
 
 ## Run it
 
-```bash no-run-button
+```bash terminal-id=host
 sbx run claude-safe --kit ./kits/claude-safe/
 ```
 
@@ -72,7 +72,7 @@ The agent argument to `sbx run` matches the `name:` field in the spec - not the 
 
 Agent kits and mixin kits compose. Run the `claude-safe` agent with the `docker-review` skill loaded on top:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx run claude-safe --kit ./kits/claude-safe/ --kit ./kits/docker-review/
 ```
 

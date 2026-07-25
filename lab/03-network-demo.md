@@ -169,7 +169,7 @@ fi
 
 Download and run the helper. With no argument it provisions **both** the network and filesystem policies, so a single run covers Section 03 **and** Section 04:
 
-```bash no-run-button
+```bash terminal-id=host
 curl -fsSL https://raw.githubusercontent.com/ajeetraina/labspace-docker-ai-governance/main/labspace/assets/setup-policies.sh -o setup-policies.sh
 bash setup-policies.sh
 ```
@@ -225,7 +225,7 @@ That last line is the central control proof. Even though sbx ships with sensible
 
 ## Step 3 - Spin up a sandbox
 
-```bash no-run-button
+```bash terminal-id=host
 mkdir -p ~/workdemo/scratch && cd ~/workdemo/scratch
 ```
 

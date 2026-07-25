@@ -112,7 +112,7 @@ If `Governance` says anything other than `$$org$$`, check that you're logged in 
 
 Every `sbx run` in this lab launches from a single directory: **`~/workdemo`**. Create it now:
 
-```bash no-run-button
+```bash terminal-id=host
 mkdir -p ~/workdemo
 ```
 

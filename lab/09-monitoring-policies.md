@@ -95,7 +95,7 @@ This is the honest answer to *"are my local rules being ignored?"* - yes, and no
 
 ### Useful filters
 
-```bash no-run-button
+```bash terminal-id=host
 # Only network rules
 sbx policy ls --type network
 
@@ -133,7 +133,7 @@ This is the view that connects the abstract policy to concrete behaviour. Readin
 
 ### Useful filters
 
-```bash no-run-button
+```bash terminal-id=host
 # Just one sandbox
 sbx policy log my-sandbox
 
@@ -151,7 +151,7 @@ sbx policy log --json
 
 Make some decisions happen, then read them back. In a sandbox (Section 03 setup):
 
-```bash no-run-button
+```bash terminal-id=host
 mkdir -p ~/workdemo/scratch && cd ~/workdemo/scratch
 ```
 

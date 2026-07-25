@@ -61,13 +61,13 @@ These events stream to your existing SIEM (Splunk, Datadog, Elastic, Sentinel) f
 - **Admin Console** - for `$$org$$`, the Activity / Audit logs view shows org-level policy and access events (when enabled for your plan)
 - **Local daemon log** - runtime decisions on this machine are streamed to the sbx daemon log. For ad-hoc inspection during demos:
 
-```bash no-run-button
+```bash terminal-id=host
 tail -50 ~/Library/Application\ Support/com.docker.sandboxes/sandboxes/sandboxd/daemon.log
 ```
 
 This is **not** a polished audit surface - it's the raw daemon log. But after running the Section 03 and Section 04 enforcement tests, you can grep it for the paste.ee, example.com, and credential-access denials to see the underlying machinery in action:
 
-```bash no-run-button
+```bash terminal-id=host
 grep -iE "paste\.ee|example\.com|deny|block" ~/Library/Application\ Support/com.docker.sandboxes/sandboxes/sandboxd/daemon.log | tail -20
 ```
 

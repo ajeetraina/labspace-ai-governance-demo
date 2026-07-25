@@ -129,13 +129,13 @@ The stable release may lag behind on MCP features - use the latest build for you
 :::conditionalDisplay{variable="os" requiredValue="mac"}
 Use the nightly Homebrew tap:
 
-```bash no-run-button
+```bash terminal-id=host
 brew install docker/tap/sbx@nightly
 ```
 
 If you already have stable installed, switch the symlink:
 
-```bash no-run-button
+```bash terminal-id=host
 brew unlink sbx 2>/dev/null; brew link --overwrite sbx@nightly
 ```
 :::
@@ -151,14 +151,14 @@ msiexec /i DockerSandboxes.msi /quiet
 :::conditionalDisplay{variable="os" requiredValue="linux"}
 Grab the latest pre-release `.deb`/`.rpm` asset from the [releases page](https://github.com/docker/sbx-releases/releases) and install it, e.g.:
 
-```bash no-run-button
+```bash terminal-id=host
 sudo apt install ./DockerSandboxes-linux-amd64-ubuntu2604.deb
 ```
 :::
 
 Verify your version:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx version
 ```
 
@@ -190,7 +190,7 @@ You need a gateway listening on `localhost:8811`. Get one **either** way below -
 
 The open-source [`docker/mcp-gateway`](https://github.com/docker/mcp-gateway) is the data plane - it proxies MCP traffic to backing servers. Pull the lab's Compose file and start it:
 
-```bash no-run-button
+```bash terminal-id=host
 mkdir -p ~/workdemo/mcp-gateway-lab && cd ~/workdemo/mcp-gateway-lab
 curl -fsSL https://raw.githubusercontent.com/ajeetraina/labspace-docker-ai-governance/main/labspace/assets/mcp-gateway-compose.yaml -o compose.yaml
 docker compose up -d
@@ -209,7 +209,7 @@ Docker Desktop **4.62+** ships the *same* gateway, managed for you:
 
 #### Point `sbx` at it
 
-```bash no-run-button
+```bash terminal-id=host
 export SBX_MCP_URL=http://localhost:8811
 sbx daemon stop && sbx daemon start -d
 ```
@@ -226,7 +226,7 @@ The endgame of **Pillar 2**: instead of running your own `localhost:8811`, `SBX_
 
 There's nothing to stand up - point `sbx` at it and restart the daemon:
 
-```bash no-run-button
+```bash terminal-id=host
 export SBX_MCP_URL=https://gateway.docker.com
 sbx daemon stop && sbx daemon start -d
 ```
@@ -239,7 +239,7 @@ When you attach a server (Step 4), the daemon calls this control plane to provis
 
 Either method leaves `SBX_MCP_URL` exported. Confirm the commands appear:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx mcp --help
 ```
 
@@ -260,13 +260,13 @@ Note `load` (attaches into a **running** sandbox) and that the attach flag on `s
 
 We'll register the Wikipedia MCP server as a **local stdio** container - the most reliable path, needs nothing beyond your machine:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx mcp add local-wiki --command docker --args "run,-i,--rm,mcp/wikipedia-mcp"
 ```
 
 `--command` is an executable path (not a shell string) and `--args` is a **comma-separated** list - these map to `docker run -i --rm mcp/wikipedia-mcp`. Confirm it landed:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx mcp ls
 sbx mcp inspect local-wiki
 ```
@@ -286,7 +286,7 @@ Two other registration modes work the same way against either gateway:
 > [!WARNING]
 > Registering only *records* the server — attaching is separate. The attach flag is **`--static-mcp`**, not `--mcp` (`--mcp` fails with `unknown flag`).
 
-```bash no-run-button
+```bash terminal-id=host
 # Bring up a sandbox with the server attached from the start
 cd ~/workdemo
 sbx run claude --static-mcp local-wiki
@@ -337,13 +337,13 @@ A tool-call line such as `mcp-gateway · search_wikipedia` (approve it if prompt
 
 ## Step 6 - Clean up
 
-```bash no-run-button
+```bash terminal-id=host
 sbx mcp rm local-wiki 2>/dev/null; sbx mcp ls
 ```
 
 If you ran the Compose gateway (Method 1, Option A), stop it too:
 
-```bash no-run-button
+```bash terminal-id=host
 cd ~/workdemo/mcp-gateway-lab && docker compose down
 ```
 

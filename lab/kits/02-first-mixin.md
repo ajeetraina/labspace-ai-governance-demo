@@ -79,7 +79,7 @@ When reviewing a Dockerfile, check:
 
 From the repo root:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx run claude --kit ./kits/docker-review/ --name kits-lab
 ```
 

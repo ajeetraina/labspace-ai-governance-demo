@@ -63,13 +63,13 @@ Response:
 
 Capture it for the rest of the session. **Prefer a PAT or Organization Access Token over your account password** - scoped tokens are revocable and safer in scripts and CI:
 
-```bash no-run-button
+```bash terminal-id=host
 export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
 ## Step 2 - List existing policies
 
-```bash no-run-button
+```bash terminal-id=host
 curl -X GET https://hub.docker.com/v2/orgs/$$org$$/governance/policies \
   -H "Authorization: Bearer $TOKEN"
 ```
@@ -133,7 +133,7 @@ A `201` returns the new policy, including the generated `id` you'll use for ever
 
 `scope` is optional - omit it for an org-wide policy.
 
-```bash no-run-button
+```bash terminal-id=host
 export POLICY_ID="pol_06evsmp24r1pg71cm8500546pkbn"
 ```
 
@@ -221,7 +221,7 @@ curl -X POST https://hub.docker.com/v2/orgs/$$org$$/governance/policies/$POLICY_
 
 Fetching a single policy by ID returns its rules under `allowlist_v0`:
 
-```bash no-run-button
+```bash terminal-id=host
 curl -X GET https://hub.docker.com/v2/orgs/$$org$$/governance/policies/$POLICY_ID \
   -H "Authorization: Bearer $TOKEN"
 ```
@@ -291,7 +291,7 @@ Errors come back as an envelope with a `code` and a `message`. The codes you'll 
 
 The API and the CLI are two ends of one system. After creating rules via the API, confirm they reach a developer exactly like a Console change would - within ~5 minutes, or immediately after a `sbx policy reset`:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx policy reset   # force a sync; choose Balanced when prompted
 sbx policy ls      # your API-created rules now show as ORIGIN: remote
 ```

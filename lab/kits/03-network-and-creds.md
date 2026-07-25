@@ -81,7 +81,7 @@ The raw value stays on the host, keyed by the credential `name`; the proxy subst
 
 The built-in `claude` agent already uses this pattern. Run:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx policy log
 ```
 

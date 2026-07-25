@@ -41,7 +41,7 @@ This section gives you two things:
 The sbx daemon writes JSONL audit records to a `sandboxd/daemon.log` file. Locate it for your platform:
 
 :::conditionalDisplay{variable="os" requiredValue="mac"}
-```bash no-run-button
+```bash terminal-id=host
 ls -lh "$HOME/Library/Application Support/com.docker.sandboxes/sandboxes/sandboxd/daemon.log"
 ```
 :::
@@ -53,13 +53,13 @@ Get-ChildItem "$env:LOCALAPPDATA\DockerSandboxes\sandboxes\logs\sandboxd\daemon.
 :::
 
 :::conditionalDisplay{variable="os" requiredValue="linux"}
-```bash no-run-button
+```bash terminal-id=host
 ls -lh "$HOME/.local/share/com.docker.sandboxes/sandboxes/sandboxd/daemon.log"
 ```
 :::
 
 :::conditionalDisplay{variable="os" hasNoValue}
-```bash no-run-button
+```bash terminal-id=host
 ls -lh "$HOME/Library/Application Support/com.docker.sandboxes/sandboxes/sandboxd/daemon.log"
 ```
 
@@ -111,7 +111,7 @@ The audit log answers *what was decided and why*, with sandbox attribution on so
 
 The dashboard is **not** running by default - it's only needed for this section, so you start it here. The kit at `labspace/kits/observability/` ships a self-contained compose file. From the repo root:
 
-```bash no-run-button
+```bash terminal-id=host
 cd labspace/kits/observability
 docker compose --profile with-gateway up -d --build
 ```
@@ -121,7 +121,7 @@ docker compose --profile with-gateway up -d --build
 
 Give it a few seconds to build, then open it (or refresh the embedded panel at the top of this section):
 
-```bash no-run-button
+```bash terminal-id=host
 open http://localhost:8090
 ```
 
@@ -131,7 +131,7 @@ When you're done with this section you can stop it again with `docker compose do
 
 In another terminal, enter a sandbox and trigger denies:
 
-```bash no-run-button
+```bash terminal-id=host
 mkdir -p ~/workdemo/scratch && cd ~/workdemo/scratch
 ```
 
@@ -141,7 +141,7 @@ sbx run shell .
 
 Inside the sandbox prompt:
 
-```bash no-run-button
+```bash terminal-id=host
 curl -sS https://collabnix.com -o /dev/null -w "%{http_code}\n"
 curl -sS https://example.com -o /dev/null -w "%{http_code}\n"
 curl -sS https://api.anthropic.com -o /dev/null -w "%{http_code}\n"

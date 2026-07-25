@@ -78,7 +78,7 @@ In **[app.docker.com/accounts/$$org$$](https://app.docker.com/accounts/$$org$$)*
 
 After editing any governance policy, force a fresh pull so the sandbox daemon doesn't serve a stale cache:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx logout && sbx login
 sbx policy ls --include-inactive | grep -i filesystem
 ```
@@ -87,7 +87,7 @@ You should see the allow rule with `ORIGIN: remote` before continuing.
 
 ## Step 2 - Clone the Product Catalog into the allowed path
 
-```bash no-run-button
+```bash terminal-id=host
 cd ~/workdemo
 git clone https://github.com/dockersamples/catalog-service-node
 cd catalog-service-node
@@ -101,13 +101,13 @@ The sandbox proxy injects credentials so the key never enters the sandbox direct
 
 **API key:**
 
-```bash no-run-button
+```bash terminal-id=host
 echo 'sk-ant-api03-...' | sbx secret set -g anthropic -f
 ```
 
 **Or Claude Pro/Max subscription** - mint a long-lived token on the host, then inject it as a custom secret the proxy swaps in for calls to `api.anthropic.com`:
 
-```bash no-run-button
+```bash terminal-id=host
 claude setup-token   # prints sk-ant-oat01-...
 sbx secret set-custom -g \
   --host api.anthropic.com \
@@ -120,13 +120,13 @@ sbx secret set-custom -g \
 
 ## Step 4 - Launch the autonomous agent
 
-```bash no-run-button
+```bash terminal-id=host
 sbx run --name catalog claude
 ```
 
 This creates the sandbox (the filesystem allow rule lets the catalog directory mount) and drops you into Claude **inside the microVM**. Confirm the sandbox has its own Docker daemon - this is where all builds and tests will run:
 
-```bash no-run-button
+```bash terminal-id=host
 sbx exec catalog -- docker version --format '{{.Server.Version}}'
 ```
 
@@ -153,7 +153,7 @@ Now watch. The agent will, **entirely inside the sandbox**:
 
 Because the source is bind-mounted, the agent's edits are already in your local tree. Open a host terminal:
 
-```bash no-run-button
+```bash terminal-id=host
 cd ~/workdemo/catalog-service-node
 git diff
 ```
