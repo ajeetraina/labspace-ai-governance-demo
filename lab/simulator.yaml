@@ -13,6 +13,10 @@ state:
   # Set true after `cd` into a directory no filesystem allow rule covers
   # (e.g. /tmp/outside-workdemo), so the next `sbx run shell .` is default-denied.
   workdir_denied: false
+  # true when the current agent session runs inside a sandbox (sbx run <agent>),
+  # false when it runs directly on the host (codex / claude / gemini). Agent
+  # prompt scenarios branch on this: ungoverned finds secrets, governed can't.
+  governed: false
 
 settings:
   pace:
@@ -204,14 +208,18 @@ scenarios:
         - "You are now inside the sandbox. Run the curl tests, then `exit` to tear it down."
 
   # Any other agent: claude / codex / gemini / $$agent$$, with or without --kit.
+  # Opens a GOVERNED agent session — prompts typed here match the agent: scenarios.
   - id: sbx-run-agent
     when: { command: [sbx, run] }
     then:
-      state: { sandbox: { active: true }, workdir_denied: false }
+      state: { sandbox: { active: true }, workdir_denied: false, governed: true }
       output:
         - { text: "Creating microVM sandbox...", delay: boot }
         - "[OK] Workspace mounted · network proxy attached · org policies enforced"
-        - "[OK] Agent ready in the sandbox. Type a prompt, or `exit` to tear it down."
+      session:
+        prompt: "agent (sandboxed)› "
+        intro: ["Agent ready inside the sandbox. Type a request; /exit to leave."]
+        outro: ["Agent session ended; sandbox torn down."]
 
   - id: exit-sandbox
     when: { command: [exit] }
@@ -551,12 +559,128 @@ scenarios:
         - "[OK] policy 'Labspace AI Governance - filesystem'  rules: allow workdemo, deny credentials"
         - "[OK] Done. Run `sbx policy reset` to sync them to this machine."
 
+  # `claude setup-token` prints an OAuth token; bare `claude` launches the agent.
+  - id: claude-setup-token
+    when:
+      command: [claude]
+      args: { 0: "setup-token" }
+    then:
+      output: ["sk-ant-oat01-xxxxxxxxxxxxxxxxxxxxxxxxxxxx  (store this with `sbx secret set`)"]
+
+  # Direct agents run UNGOVERNED — on your host, as you, with no sandbox.
   - id: claude-direct
     when: { command: [claude] }
     then:
-      output: ["sk-ant-oat01-xxxxxxxxxxxxxxxxxxxxxxxxxxxx  (store this with `sbx secret set`)"]
+      state: { governed: false }
+      output: ["Claude Code — running on your host, as you (no sandbox)."]
+      session:
+        prompt: "claude (host)› "
+        intro: ["Agent ready. Type a request; /exit to quit."]
+        outro: ["Agent session ended."]
 
   - id: codex-direct
     when: { command: [codex] }
     then:
-      output: ["Launching Codex... (run inside a governed sbx sandbox with `sbx run codex .`)"]
+      state: { governed: false }
+      output: ["Codex — running on your host, as you (no sandbox)."]
+      session:
+        prompt: "codex (host)› "
+        intro: ["Agent ready. Type a request; /exit to quit."]
+        outro: ["Agent session ended."]
+
+  - id: gemini-direct
+    when: { command: [gemini] }
+    then:
+      state: { governed: false }
+      output: ["Gemini CLI — running on your host, as you (no sandbox)."]
+      session:
+        prompt: "gemini (host)› "
+        intro: ["Agent ready. Type a request; /exit to quit."]
+        outro: ["Agent session ended."]
+
+  # ══ Agent prompts (matched inside a session) ═══════════════════════════════
+  # Credential hunt — the flagship "horror story". Ungoverned finds everything;
+  # governed comes up empty because those paths were never mounted.
+  - id: agent-creds-ungoverned
+    when:
+      agent: true
+      promptContains: ["credentials"]
+      state: { governed: false }
+    then:
+      output:
+        - { text: "Searching your home directory...", delay: net }
+        - "Found credentials in several locations:"
+        - "  ~/.aws/credentials         → AWS access key AKIA…************ + secret"
+        - "  ~/.ssh/id_ed25519          → OpenSSH private key"
+        - "  ~/.docker/config.json      → registry auth token"
+        - "  ~/.config/gcloud/…         → GCP OAuth credentials"
+        - "  ~/work/app/.env            → ANTHROPIC_API_KEY=sk-ant-************"
+        - ""
+        - "I read each of these directly. No boundary, no policy, no audit — I run as you."
+
+  - id: agent-creds-governed
+    when:
+      agent: true
+      promptContains: ["credentials"]
+      state: { governed: true }
+    then:
+      output:
+        - { text: "Searching the mounted workspace...", delay: net }
+        - "Nothing to report — those paths don't exist in here:"
+        - "  ~/.ssh        → not present in this sandbox"
+        - "  ~/.aws        → not present in this sandbox"
+        - "  ~/.docker     → not present in this sandbox"
+        - ""
+        - "Only the mounted workspace is visible. Your credential directories were never mounted,"
+        - "and the API key I authenticate with is a proxy-managed sentinel — not the real value."
+
+  - id: agent-wiki
+    when:
+      agent: true
+      promptContains: ["Wikipedia"]
+    then:
+      output:
+        - "Calling the local-wiki MCP server via the Docker MCP Gateway..."
+        - "search_wikipedia(\"Eiffel Tower\") → get_summary()"
+        - ""
+        - "The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France."
+        - "Key facts: (1) completed 1889 for the World's Fair; (2) ~330 m tall; (3) designed by Gustave Eiffel's company."
+        - "Tools called: search_wikipedia, get_summary (both routed through the governed gateway)."
+
+  - id: agent-catalog-bug
+    when:
+      agent: true
+      promptContains: ["upc"]
+    then:
+      output:
+        - "Tracing the product-creation path... the Kafka producer drops `upc` from the event payload."
+        - "Patching src/publishProductEvent.js to include upc, then running the integration suite..."
+        - "PASS  tests/integration/product.kafka.test.js  (12 passed)"
+        - "Fixed and verified. See `git diff` for the change."
+
+  - id: agent-notion
+    when:
+      agent: true
+      promptContains: ["notion"]
+    then:
+      output:
+        - "Calling the notion MCP server through the Docker MCP Gateway..."
+        - "list_documents() → 3 recent documents returned (titles redacted in this demo)."
+
+  - id: agent-dockerfile
+    when:
+      agent: true
+      promptContains: ["Dockerfile"]
+    then:
+      output:
+        - "Reviewing the Dockerfile against the docker-review kit's skill..."
+        - "• Pin the base image to a digest, not a floating tag"
+        - "• Add a non-root USER before the entrypoint"
+        - "• Combine RUN layers and clean apt caches to shrink the image"
+
+  # Catch-all so any other prompt in a session gets an in-character reply.
+  - id: agent-generic
+    when: { agent: true }
+    then:
+      output:
+        - "Working on that inside the current session. (This is a simulated agent — try the credential-hunt prompt from the Problem Statement to see governance in action.)"
