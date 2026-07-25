@@ -208,7 +208,8 @@ scenarios:
         - "You are now inside the sandbox. Run the curl tests, then `exit` to tear it down."
 
   # Any other agent: claude / codex / gemini / $$agent$$, with or without --kit.
-  # Opens a GOVERNED agent session — prompts typed here match the agent: scenarios.
+  # GOVERNED launch. No REPL session (so you can keep running sbx/curl/exit
+  # freely) — the prompt blocks below are matched as commands via their words.
   - id: sbx-run-agent
     when: { command: [sbx, run] }
     then:
@@ -216,10 +217,7 @@ scenarios:
       output:
         - { text: "Creating microVM sandbox...", delay: boot }
         - "[OK] Workspace mounted · network proxy attached · org policies enforced"
-      session:
-        prompt: "agent (sandboxed)› "
-        intro: ["Agent ready inside the sandbox. Type a request; /exit to leave."]
-        outro: ["Agent session ended; sandbox torn down."]
+        - "Agent ready inside the sandbox. Run the prompt block below to send it a request."
 
   - id: exit-sandbox
     when: { command: [exit] }
@@ -568,43 +566,38 @@ scenarios:
       output: ["sk-ant-oat01-xxxxxxxxxxxxxxxxxxxxxxxxxxxx  (store this with `sbx secret set`)"]
 
   # Direct agents run UNGOVERNED — on your host, as you, with no sandbox.
+  # No session, so you can keep running commands normally after launching.
   - id: claude-direct
     when: { command: [claude] }
     then:
       state: { governed: false }
-      output: ["Claude Code — running on your host, as you (no sandbox)."]
-      session:
-        prompt: "claude (host)› "
-        intro: ["Agent ready. Type a request; /exit to quit."]
-        outro: ["Agent session ended."]
+      output:
+        - "Claude Code — running on your host, as you (no sandbox)."
+        - "Run the prompt block below to send it a request."
 
   - id: codex-direct
     when: { command: [codex] }
     then:
       state: { governed: false }
-      output: ["Codex — running on your host, as you (no sandbox)."]
-      session:
-        prompt: "codex (host)› "
-        intro: ["Agent ready. Type a request; /exit to quit."]
-        outro: ["Agent session ended."]
+      output:
+        - "Codex — running on your host, as you (no sandbox)."
+        - "Run the prompt block below to send it a request."
 
   - id: gemini-direct
     when: { command: [gemini] }
     then:
       state: { governed: false }
-      output: ["Gemini CLI — running on your host, as you (no sandbox)."]
-      session:
-        prompt: "gemini (host)› "
-        intro: ["Agent ready. Type a request; /exit to quit."]
-        outro: ["Agent session ended."]
+      output:
+        - "Gemini CLI — running on your host, as you (no sandbox)."
+        - "Run the prompt block below to send it a request."
 
-  # ══ Agent prompts (matched inside a session) ═══════════════════════════════
-  # Credential hunt — the flagship "horror story". Ungoverned finds everything;
-  # governed comes up empty because those paths were never mounted.
-  - id: agent-creds-ungoverned
+  # ══ Agent prompts (matched as commands via their leading words) ════════════
+  # No session is used (that would trap you and can't be exited with `exit`), so
+  # each prompt is an ordinary command scenario keyed on its first words. The
+  # credential hunt branches on whether an agent was launched governed or not.
+  - id: prompt-creds-ungoverned
     when:
-      agent: true
-      promptContains: ["credentials"]
+      command: [Search]
       state: { governed: false }
     then:
       output:
@@ -618,10 +611,9 @@ scenarios:
         - ""
         - "I read each of these directly. No boundary, no policy, no audit — I run as you."
 
-  - id: agent-creds-governed
+  - id: prompt-creds-governed
     when:
-      agent: true
-      promptContains: ["credentials"]
+      command: [Search]
       state: { governed: true }
     then:
       output:
@@ -634,10 +626,8 @@ scenarios:
         - "Only the mounted workspace is visible. Your credential directories were never mounted,"
         - "and the API key I authenticate with is a proxy-managed sentinel — not the real value."
 
-  - id: agent-wiki
-    when:
-      agent: true
-      promptContains: ["Wikipedia"]
+  - id: prompt-wiki
+    when: { command: [Use, the, wiki] }
     then:
       output:
         - "Calling the local-wiki MCP server via the Docker MCP Gateway..."
@@ -647,10 +637,15 @@ scenarios:
         - "Key facts: (1) completed 1889 for the World's Fair; (2) ~330 m tall; (3) designed by Gustave Eiffel's company."
         - "Tools called: search_wikipedia, get_summary (both routed through the governed gateway)."
 
-  - id: agent-catalog-bug
-    when:
-      agent: true
-      promptContains: ["upc"]
+  - id: prompt-notion
+    when: { command: [Use, the, notion] }
+    then:
+      output:
+        - "Calling the notion MCP server through the Docker MCP Gateway..."
+        - "list_documents() → 3 recent documents returned (titles redacted in this demo)."
+
+  - id: prompt-catalog
+    when: { command: [Fix, the, bug] }
     then:
       output:
         - "Tracing the product-creation path... the Kafka producer drops `upc` from the event payload."
@@ -658,29 +653,11 @@ scenarios:
         - "PASS  tests/integration/product.kafka.test.js  (12 passed)"
         - "Fixed and verified. See `git diff` for the change."
 
-  - id: agent-notion
-    when:
-      agent: true
-      promptContains: ["notion"]
-    then:
-      output:
-        - "Calling the notion MCP server through the Docker MCP Gateway..."
-        - "list_documents() → 3 recent documents returned (titles redacted in this demo)."
-
-  - id: agent-dockerfile
-    when:
-      agent: true
-      promptContains: ["Dockerfile"]
+  - id: prompt-dockerfile
+    when: { command: [Review, the, Dockerfile] }
     then:
       output:
         - "Reviewing the Dockerfile against the docker-review kit's skill..."
         - "• Pin the base image to a digest, not a floating tag"
         - "• Add a non-root USER before the entrypoint"
         - "• Combine RUN layers and clean apt caches to shrink the image"
-
-  # Catch-all so any other prompt in a session gets an in-character reply.
-  - id: agent-generic
-    when: { agent: true }
-    then:
-      output:
-        - "Working on that inside the current session. (This is a simulated agent — try the credential-hunt prompt from the Problem Statement to see governance in action.)"

@@ -42,7 +42,7 @@ cd ~
 curl -fsSL https://chatgpt.com/codex/install.sh | sh
 ```
 
-Then launch the agent (this drops you into its session):
+Then launch the agent:
 
 ```bash terminal-id=host
 codex
@@ -52,8 +52,7 @@ This is how most people run coding agents today: straight on the metal — or in
 
 ## Step 2 - Ask it to go find your secrets
 
-Inside the agent, run this prompt (make sure the terminal shows the `codex (host)›`
-prompt first — if it shows `$`, run `codex` above again):
+With the agent launched, run this prompt (its Run button sends it to the agent):
 
 ```console terminal-id=host
 Search my home directory for API keys, cloud credentials, and SSH private keys — check ~/.aws, ~/.ssh, ~/.docker, ~/.config/gcloud, and any .env files. Show me what you found and the exact file paths.
