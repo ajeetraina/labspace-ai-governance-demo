@@ -1,14 +1,37 @@
-# My Labspace lab
+# Docker AI Governance — interactive Labspace
 
-An interactive, fully in-browser lab built on
-[Labspace](https://github.com/dockersamples/labspace-web). Everything in the terminal
-is simulated — no real Docker, backend, or network — so it runs the same for
-everyone, with nothing to install.
+An interactive, fully in-browser lab that proves how **Docker AI Governance**
+policies flow from one Admin Console toggle to every developer's `sbx` sandbox —
+covering **network**, **filesystem**, and **credential** enforcement, the MCP
+Gateway, observability, and Sandbox Kits.
 
-You edit the lab under [`lab/`](lab/); the app that runs it is a prebuilt image,
-and the lab is loaded at runtime, so there's no build step for content.
+**Define once. Enforce everywhere.**
 
-## Author locally
+Built on [Labspace](https://github.com/dockersamples/labspace-web). Everything in
+the terminal is **simulated** — no real Docker, `sbx`, backend, or network — so it
+runs the same for everyone, with nothing to install. It's the web/simulated
+companion to the real-hardware lab at
+[ajeetraina/labspace-docker-ai-governance](https://github.com/ajeetraina/labspace-docker-ai-governance).
+
+## What you can do live in the browser
+
+The flagship demos are click-to-run against a scripted `sbx` sandbox:
+
+- **Network enforcement** — three `curl`s, three outcomes: `anthropic: 404`
+  (allowed → reached origin), `paste.ee: 403` (deny rule), `example.com: 403`
+  (default-deny), all decided at the sbx proxy.
+- **Filesystem enforcement** — `sbx run shell . ~/.ssh:ro` fails at creation with
+  `403 mount policy denied`, matched to the `deny credentials` rule.
+- **Policy sync** — `sbx policy ls` / `reset` / `log` show org rules landing with
+  `ORIGIN: remote` while local defaults go inactive.
+- **Credential isolation** — inside the sandbox `ANTHROPIC_API_KEY=proxy-managed`
+  (a sentinel, never the real key).
+
+The other 20+ sections (Policy Model, MCP Hands-On, Product Catalog, Observability,
+Audit Logging, Governance API, and the six-part Sandbox Kits track) are rendered
+read-only with the exact commands and expected output.
+
+## Author / preview locally
 
 You only need Docker.
 
@@ -17,44 +40,32 @@ docker compose up dev              # live preview at http://localhost:5173
 docker compose run --rm validate   # lint the lab (fails on errors)
 ```
 
-Edit the files in `lab/` and refresh the browser to see changes:
+Edit the files in [`lab/`](lab/) and refresh the browser to see changes:
 
-- `lab/labspace.yaml` — title, terminals, seed files, sections, variables
-- `lab/simulator.yaml` — what each command does (scenarios)
-- `lab/*.md` — one file per section of instructions
+- `lab/labspace.yaml` — title, terminal, seed files, the 23 sections, variables
+- `lab/simulator.yaml` — what each runnable command does (scenarios)
+- `lab/*.md`, `lab/kits/*.md` — one file per section of instructions
 
-Pin the toolchain to a released version for reproducibility:
+## Deploy to GitHub Pages
 
-```bash
-export LABSPACE_AUTHORING_IMAGE=dockersamples/labspace-web-authoring:1
-```
+1. **Enable Pages once:** repo **Settings → Pages → Source: "GitHub Actions"**.
+2. **Push to `main`.** The workflow in
+   [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) validates the lab
+   and publishes it to `https://ajeetraina.github.io/labspace-ai-governance-demo/`.
 
-## Deploy
-
-**GitHub Pages (default):** enable Pages (Settings → Pages → Source: "GitHub
-Actions"), then push to `main`. The workflow in
-[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) validates the lab
-and publishes it. Pin `runtime-tag` there to a released version for a stable lab.
 Pull requests are validated first by
 [`.github/workflows/validate.yml`](.github/workflows/validate.yml).
 
-**As a container:** the [`Dockerfile`](Dockerfile) bases on the runtime image and
-swaps in your lab.
+**As a container** instead — the [`Dockerfile`](Dockerfile) bases on the runtime
+image and swaps in this lab:
 
 ```bash
-docker build -t my-lab .
-docker run --rm -p 8080:80 my-lab    # http://localhost:8080
+docker build -t ai-governance-lab .
+docker run --rm -p 8080:80 ai-governance-lab    # http://localhost:8080
 ```
-
-## Authoring with an AI agent
-
-This repo is set up for agent authoring. In Claude Code, an `authoring-lab` skill
-(under `.claude/`) knows the workflow, `docker compose` / `validate-lab` are
-pre-allowed, and a hook auto-validates the lab after every edit under `lab/`.
-[`CLAUDE.md`](CLAUDE.md) loads the guide automatically.
 
 ## Learn more
 
-See [`AGENTS.md`](AGENTS.md) for an authoring cheat-sheet, and the
-[Labspace specs](https://github.com/dockersamples/labspace-web/tree/main/spec) for the
-full `simulator.yaml` / `labspace.yaml` reference.
+See [`AGENTS.md`](AGENTS.md) for the authoring cheat-sheet and the
+[Labspace specs](https://github.com/dockersamples/labspace-web/tree/main/spec) for
+the full `simulator.yaml` / `labspace.yaml` reference.

@@ -1,44 +1,157 @@
 version: "2.0"
 
 metadata:
-  id: my-lab
-  title: "My Lab"
-  summary: "Describe what this lab teaches."
+  id: ai-governance
+  title: "Docker AI Governance"
+  summary: "Simulated sbx sandbox proving how org policies enforce network, filesystem, and credential rules."
 
 # In-memory state. Scenarios read it in `when.state` and write it in `then.state`.
 state:
-  greeted: false
+  synced: false
+  sandbox:
+    active: false
 
 settings:
   pace:
-    pull: 900   # simulated layer download
+    boot: 700     # microVM boot feel
+    sync: 500     # policy sync feel
+    net: 400      # network round-trip feel
 
 defaults:
   unmatched:
-    stderr: ["Error: that command isn't part of this lab yet."]
+    stderr:
+      - "This command is display-only in the simulator. Run the flagship demo commands (the ones with a Run button) to see enforcement in action."
     exit: 1
 
 scenarios:
-  # A plain command. `command:` is the leading tokens; trailing args are ignored
-  # unless you match them with `args:`.
-  - id: echo
+  # ── Silent shell helpers so compound setup lines (mkdir … && cd …) match ──
+  - id: mkdir-noop
     when:
-      command: [echo]
+      command: [mkdir]
     then:
-      state: { greeted: true }
-      output: ["Hello from your lab!"]
+      output: []
 
-  # Capture a positional argument and template it into the output. `{{ args.0 }}`
-  # is the first token after the command path.
-  - id: docker-run
+  - id: cd-noop
     when:
-      command: [docker, run]
-      args:
-        0: { any: true }
+      command: [cd]
+    then:
+      output: []
+
+  # ── Setup ────────────────────────────────────────────────────────────────
+  - id: sbx-version
+    when:
+      command: [sbx, version]
     then:
       output:
-        - "Unable to find image '{{ args.0 }}' locally"
-        - { text: "latest: Pulling from library/{{ args.0 }}", delay: short }
-        - { text: "a480a496...: Pull complete", delay: pull }
-        - { text: "Status: Downloaded newer image for {{ args.0 }}", delay: short }
-        - "Hello from Docker!"
+        - "Docker Sandboxes (sbx) v0.10.3"
+        - "microVM engine: ready"
+
+  # ── Policy sync (Policy Model / Network / Governance API) ─────────────────
+  - id: sbx-policy-reset
+    when:
+      command: [sbx, policy, reset]
+    then:
+      state: { synced: true }
+      output:
+        - { text: "Re-syncing policies from your organization...", delay: sync }
+        - { text: "Posture: Balanced", delay: sync }
+        - "[OK] Synced 3 network rules and 2 filesystem rules from your org."
+
+  - id: sbx-policy-ls-inactive
+    when:
+      command: [sbx, policy, ls]
+      args: { --include-inactive: true }
+    then:
+      output:
+        - "Governance: managed by your org"
+        - "[OK] last synced 13:54:21"
+        - ""
+        - "PROVENANCE   APPLIES_TO   POLICY / RULE                                          TYPE               DECISION   RESOURCES"
+        - "remote       all          Labspace AI Governance - filesystem / allow workdemo   filesystem:write   allow      ~/workdemo/**"
+        - "remote       all          Labspace AI Governance - filesystem / deny creds       filesystem:write   deny       ~/.ssh/**, ~/.aws/**, ~/.docker/config.json"
+        - "local        all          default-allow-home                                     filesystem:write   inactive   ~/**  (corporate policy takes precedence)"
+
+  - id: sbx-policy-ls
+    when:
+      command: [sbx, policy, ls]
+    then:
+      output:
+        - "Governance: managed by your org"
+        - "[OK] last synced 13:54:21"
+        - ""
+        - "NAME                    TYPE      ORIGIN   DECISION   STATUS     RESOURCES"
+        - "allow AI services       network   remote   allow      active     api.anthropic.com, api.openai.com, *.googleapis.com"
+        - "allow Docker services   network   remote   allow      active     *.docker.com, *.docker.io, dhi.io"
+        - "deny exfiltration       network   remote   deny       active     paste.ee, pastebin.com, hooks.slack.com"
+        - "default-allow-lan       network   local    allow      inactive   corporate policy takes precedence"
+        - "default-deny-all        network   local    deny       inactive   corporate policy takes precedence"
+
+  - id: sbx-policy-log
+    when:
+      command: [sbx, policy, log]
+    then:
+      output:
+        - "Blocked requests:"
+        - "SANDBOX      TYPE     HOST                  PROXY         RULE            REASON         LAST SEEN        COUNT"
+        - "my-sandbox   network  paste.ee              transparent   deny-exfil      denied         10:15:25 29-Jan  1"
+        - "my-sandbox   network  example.com           transparent   domain-blocked  default-deny   10:15:25 29-Jan  1"
+        - ""
+        - "Allowed requests:"
+        - "SANDBOX      TYPE     HOST                  PROXY         RULE            REASON         LAST SEEN        COUNT"
+        - "my-sandbox   network  api.anthropic.com     forward       domain-allowed                 10:15:23 29-Jan  42"
+
+  # ── Sandbox lifecycle ─────────────────────────────────────────────────────
+  # Denied first: any explicit mount arg trips the deny-credentials rule.
+  - id: sbx-run-shell-denied
+    when:
+      command: [sbx, run, shell]
+      args: { 1: { any: true } }
+    then:
+      stderr:
+        - { text: "Creating microVM sandbox 'shell'...", delay: boot }
+        - "ERROR: failed to create sandbox: ... status 403: mount policy denied:"
+        - "  op(action=fs:mount:read, resource=fs:path:/Users/you/.ssh)"
+        - "  matched rule: deny credentials (ORIGIN: remote)"
+      exit: 1
+
+  - id: sbx-run-shell
+    when:
+      command: [sbx, run, shell]
+    then:
+      state: { sandbox: { active: true } }
+      output:
+        - { text: "Creating microVM sandbox 'shell'...", delay: boot }
+        - "[OK] Workspace mounted (read-write): current directory"
+        - "[OK] Network proxy attached — org policies enforced"
+        - "You are now inside the sandbox. Run the curl tests, then `exit` to tear it down."
+
+  - id: exit-sandbox
+    when:
+      command: [exit]
+    then:
+      state: { sandbox: { active: false } }
+      output:
+        - "[OK] Sandbox torn down. Anything not written to the mounted workspace is gone."
+
+  # ── The three enforcement tests (Network / Credential / Monitoring) ───────
+  # One catch-all: the flagship block runs all three curls as a single submission,
+  # so a single scenario prints all three verdicts at once. Robust against curl's
+  # leading flags (which shift positional args) — no per-URL matching needed.
+  - id: curl-enforcement
+    when:
+      command: [curl]
+    then:
+      output:
+        - { text: "anthropic:   404   ← reached origin (allowed by 'allow AI services')", delay: net }
+        - { text: "paste.ee:    403   ← refused by sbx proxy ('deny exfiltration')", delay: net }
+        - { text: "example.com: 403   ← refused by sbx proxy (default-deny)", delay: net }
+        - "Non-403 means the request reached the origin (allowed); 403 means the sbx proxy refused it."
+
+  # ── Credential isolation ──────────────────────────────────────────────────
+  - id: echo-cred-sentinel
+    when:
+      command: [echo]
+      args: { 0: "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" }
+    then:
+      output:
+        - "ANTHROPIC_API_KEY=proxy-managed"
