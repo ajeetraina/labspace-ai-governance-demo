@@ -93,6 +93,9 @@ The strongest boundary fires before the agent runs. Try to launch a sandbox that
 
 ```bash no-run-button
 cd ~/workdemo/capstone
+```
+
+```bash terminal-id=host
 sbx run shell . ~/.ssh:ro
 ```
 
@@ -112,6 +115,9 @@ Now start the sandbox the way it's meant to run - workspace only, no credential 
 
 ```bash no-run-button
 cd ~/workdemo/capstone
+```
+
+```bash terminal-id=host
 sbx run shell .
 ```
 

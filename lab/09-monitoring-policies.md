@@ -153,6 +153,9 @@ Make some decisions happen, then read them back. In a sandbox (Section 03 setup)
 
 ```bash no-run-button
 mkdir -p ~/workdemo/scratch && cd ~/workdemo/scratch
+```
+
+```bash terminal-id=host
 sbx run shell .
 ```
 

@@ -10,6 +10,9 @@ state:
   synced: false
   sandbox:
     active: false
+  # Set true after `cd` into a directory no filesystem allow rule covers
+  # (e.g. /tmp/outside-workdemo), so the next `sbx run shell .` is default-denied.
+  workdir_denied: false
 
 settings:
   pace:
@@ -31,10 +34,21 @@ scenarios:
     then:
       output: []
 
+  # cd into an unallowed path arms the default-deny for the next sandbox run.
+  - id: cd-outside-workdemo
+    when:
+      command: [cd]
+      args: { 0: "/tmp/outside-workdemo" }
+    then:
+      state: { workdir_denied: true }
+      output: []
+
+  # Any other cd is into an allowed/known path — clear the flag.
   - id: cd-noop
     when:
       command: [cd]
     then:
+      state: { workdir_denied: false }
       output: []
 
   # ── Setup ────────────────────────────────────────────────────────────────
@@ -114,11 +128,25 @@ scenarios:
         - "  matched rule: deny credentials (ORIGIN: remote)"
       exit: 1
 
+  # Denied when the workspace itself is outside any allow rule (default-deny).
+  - id: sbx-run-shell-denied-workdir
+    when:
+      command: [sbx, run, shell]
+      state: { workdir_denied: true }
+    then:
+      state: { workdir_denied: false }
+      stderr:
+        - { text: "Creating microVM sandbox 'shell'...", delay: boot }
+        - "ERROR: failed to create sandbox: ... status 403: mount policy denied:"
+        - "  /private/tmp/outside-workdemo: no applicable policies for"
+        - "  op(action=fs:mount:write, resource=fs:path:/private/tmp/outside-workdemo)"
+      exit: 1
+
   - id: sbx-run-shell
     when:
       command: [sbx, run, shell]
     then:
-      state: { sandbox: { active: true } }
+      state: { sandbox: { active: true }, workdir_denied: false }
       output:
         - { text: "Creating microVM sandbox 'shell'...", delay: boot }
         - "[OK] Workspace mounted (read-write): current directory"

@@ -133,6 +133,9 @@ In another terminal, enter a sandbox and trigger denies:
 
 ```bash no-run-button
 mkdir -p ~/workdemo/scratch && cd ~/workdemo/scratch
+```
+
+```bash terminal-id=host
 sbx run shell .
 ```
 

@@ -260,8 +260,11 @@ resource=fs:path:/Users/<you>/.ssh
 
 ## Step 6 - Test 3: Unallowed workdir (default-deny)
 
-```bash no-run-button
+```bash terminal-id=host
 cd /tmp/outside-workdemo
+```
+
+```bash terminal-id=host
 sbx run shell .
 ```
 
