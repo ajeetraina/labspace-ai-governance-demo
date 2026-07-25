@@ -7,6 +7,10 @@ Gateway, observability, and Sandbox Kits.
 
 **Define once. Enforce everywhere.**
 
+[![Docker AI Governance lab — live on GitHub Pages](docs/screenshot.png)](https://ajeetraina.github.io/labspace-ai-governance-demo/)
+
+> Live at **[ajeetraina.github.io/labspace-ai-governance-demo](https://ajeetraina.github.io/labspace-ai-governance-demo/)**
+
 Built on [Labspace](https://github.com/dockersamples/labspace-web). Everything in
 the terminal is **simulated** — no real Docker, `sbx`, backend, or network — so it
 runs the same for everyone, with nothing to install. It's the web/simulated
