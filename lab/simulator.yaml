@@ -161,6 +161,25 @@ scenarios:
       output:
         - "[OK] Sandbox torn down. Anything not written to the mounted workspace is gone."
 
+  # ── Verbose curl: the MITM proxy up close ────────────────────────────────
+  # Must precede the catch-all so `curl -v …` shows the proxy trace, not the
+  # three-line summary. Matched on the -v flag.
+  - id: curl-verbose-paste
+    when:
+      command: [curl]
+      args: { -v: true }
+    then:
+      output:
+        - "* Uses proxy env variable https_proxy == 'http://gateway.docker.internal:3128'"
+        - { text: "> CONNECT paste.ee:443 HTTP/1.1", delay: net }
+        - "< HTTP/1.0 200 OK"
+        - "* CONNECT tunnel established, response 200"
+        - { text: "* Server certificate:", delay: net }
+        - "*   subject: O=GoProxy untrusted MITM proxy Inc; CN=paste.ee"
+        - "*   the cert is minted by the sbx proxy — paste.ee never received the connection"
+        - { text: "< HTTP/1.1 403 Forbidden", delay: net }
+        - "* Request refused inside the MITM tunnel by rule 'deny exfiltration'."
+
   # ── The three enforcement tests (Network / Credential / Monitoring) ───────
   # One catch-all: the flagship block runs all three curls as a single submission,
   # so a single scenario prints all three verdicts at once. Robust against curl's

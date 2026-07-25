@@ -277,7 +277,7 @@ The distinction between 200/404 (origin server replied) and 403 (proxy refused) 
 
 For a more visceral demo, run a verbose `curl` from inside the sandbox:
 
-```bash no-run-button
+```bash terminal-id=host
 curl -v https://paste.ee 2>&1 | head -50
 ```
 
@@ -308,7 +308,7 @@ That `O=GoProxy untrusted MITM proxy Inc` is the proxy openly identifying itself
 
 To see the 403 itself, lengthen the head:
 
-```bash no-run-button
+```bash terminal-id=host
 curl -v https://paste.ee 2>&1 | head -80 | tail -30
 ```
 
