@@ -293,6 +293,9 @@ The API and the CLI are two ends of one system. After creating rules via the API
 
 ```bash terminal-id=host
 sbx policy reset   # force a sync; choose Balanced when prompted
+```
+
+```bash terminal-id=host
 sbx policy ls      # your API-created rules now show as ORIGIN: remote
 ```
 

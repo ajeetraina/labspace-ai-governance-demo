@@ -37,8 +37,11 @@ An unsandboxed agent, running as *you*, reading credentials off your host: cloud
 
 No sandbox. Just the agent, in your real home directory, with your real permissions:
 
-```bash no-run-button
+```bash terminal-id=host
 cd ~
+```
+
+```bash terminal-id=host
 curl -fsSL https://chatgpt.com/codex/install.sh | sh
 ```
 

@@ -171,6 +171,9 @@ Download and run the helper. With no argument it provisions **both** the network
 
 ```bash terminal-id=host
 curl -fsSL https://raw.githubusercontent.com/ajeetraina/labspace-docker-ai-governance/main/labspace/assets/setup-policies.sh -o setup-policies.sh
+```
+
+```bash terminal-id=host
 bash setup-policies.sh
 ```
 

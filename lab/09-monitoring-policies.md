@@ -98,7 +98,9 @@ This is the honest answer to *"are my local rules being ignored?"* - yes, and no
 ```bash terminal-id=host
 # Only network rules
 sbx policy ls --type network
+```
 
+```bash terminal-id=host
 # Rules in effect for one specific sandbox
 sbx policy ls my-sandbox
 ```
@@ -136,13 +138,19 @@ This is the view that connects the abstract policy to concrete behaviour. Readin
 ```bash terminal-id=host
 # Just one sandbox
 sbx policy log my-sandbox
+```
 
+```bash terminal-id=host
 # Last 20 entries
 sbx policy log --limit 20
+```
 
+```bash terminal-id=host
 # Network only
 sbx policy log --type network
+```
 
+```bash terminal-id=host
 # Machine-readable for scripting / piping to jq
 sbx policy log --json
 ```
@@ -165,6 +173,9 @@ Inside the sandbox:
 curl -sS https://api.anthropic.com -o /dev/null -w "anthropic: %{http_code}\n"
 curl -sS https://paste.ee      -o /dev/null -w "paste.ee: %{http_code}\n"
 curl -sS https://example.com   -o /dev/null -w "example.com: %{http_code}\n"
+```
+
+```bash terminal-id=host
 exit
 ```
 

@@ -79,7 +79,14 @@ In **[app.docker.com/accounts/$$org$$](https://app.docker.com/accounts/$$org$$)*
 After editing any governance policy, force a fresh pull so the sandbox daemon doesn't serve a stale cache:
 
 ```bash terminal-id=host
-sbx logout && sbx login
+sbx logout
+```
+
+```bash terminal-id=host
+sbx login
+```
+
+```bash terminal-id=host
 sbx policy ls --include-inactive | grep -i filesystem
 ```
 
@@ -89,7 +96,13 @@ You should see the allow rule with `ORIGIN: remote` before continuing.
 
 ```bash terminal-id=host
 cd ~/workdemo
+```
+
+```bash terminal-id=host
 git clone https://github.com/dockersamples/catalog-service-node
+```
+
+```bash terminal-id=host
 cd catalog-service-node
 ```
 
@@ -109,6 +122,9 @@ echo 'sk-ant-api03-...' | sbx secret set -g anthropic -f
 
 ```bash terminal-id=host
 claude setup-token   # prints sk-ant-oat01-...
+```
+
+```bash terminal-id=host
 sbx secret set-custom -g \
   --host api.anthropic.com \
   --env CLAUDE_CODE_OAUTH_TOKEN \
@@ -153,6 +169,9 @@ Because the source is bind-mounted, the agent's edits are already in your local 
 
 ```bash terminal-id=host
 cd ~/workdemo/catalog-service-node
+```
+
+```bash terminal-id=host
 git diff
 ```
 

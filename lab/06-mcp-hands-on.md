@@ -192,7 +192,13 @@ The open-source [`docker/mcp-gateway`](https://github.com/docker/mcp-gateway) is
 
 ```bash terminal-id=host
 mkdir -p ~/workdemo/mcp-gateway-lab && cd ~/workdemo/mcp-gateway-lab
+```
+
+```bash terminal-id=host
 curl -fsSL https://raw.githubusercontent.com/ajeetraina/labspace-docker-ai-governance/main/labspace/assets/mcp-gateway-compose.yaml -o compose.yaml
+```
+
+```bash terminal-id=host
 docker compose up -d
 ```
 
@@ -211,6 +217,9 @@ Docker Desktop **4.62+** ships the *same* gateway, managed for you:
 
 ```bash terminal-id=host
 export SBX_MCP_URL=http://localhost:8811
+```
+
+```bash terminal-id=host
 sbx daemon stop && sbx daemon start -d
 ```
 
@@ -228,6 +237,9 @@ There's nothing to stand up - point `sbx` at it and restart the daemon:
 
 ```bash terminal-id=host
 export SBX_MCP_URL=https://gateway.docker.com
+```
+
+```bash terminal-id=host
 sbx daemon stop && sbx daemon start -d
 ```
 
@@ -268,6 +280,9 @@ sbx mcp add local-wiki --command docker --args "run,-i,--rm,mcp/wikipedia-mcp"
 
 ```bash terminal-id=host
 sbx mcp ls
+```
+
+```bash terminal-id=host
 sbx mcp inspect local-wiki
 ```
 

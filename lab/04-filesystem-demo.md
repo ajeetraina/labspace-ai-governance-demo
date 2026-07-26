@@ -142,6 +142,9 @@ Then run the helper scoped to the filesystem domain:
 
 ```bash terminal-id=host
 curl -fsSL https://raw.githubusercontent.com/ajeetraina/labspace-docker-ai-governance/main/labspace/assets/setup-policies.sh -o setup-policies.sh
+```
+
+```bash terminal-id=host
 bash setup-policies.sh filesystem
 ```
 
@@ -227,6 +230,9 @@ The sandbox starts and you land at the shell prompt. Write a file to prove the m
 
 ```bash terminal-id=host
 echo "hello from the agent" > proof.txt
+```
+
+```bash terminal-id=host
 exit
 ```
 

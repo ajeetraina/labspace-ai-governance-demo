@@ -63,7 +63,13 @@ First, see what the agent *would* have on an ungoverned machine. The inventory s
 
 ```bash terminal-id=host
 mkdir -p ~/workdemo/capstone && cd ~/workdemo/capstone
+```
+
+```bash terminal-id=host
 curl -fsSL https://raw.githubusercontent.com/ajeetraina/labspace-docker-ai-governance/main/project/horror-story-agent/inventory.sh -o inventory.sh
+```
+
+```bash terminal-id=host
 bash inventory.sh
 ```
 
@@ -129,6 +135,9 @@ Re-run the same inventory script from **inside** the sandbox to compare against 
 
 ```bash terminal-id=host
 ls ~/.ssh ~/.aws 2>&1
+```
+
+```bash terminal-id=host
 bash inventory.sh
 ```
 

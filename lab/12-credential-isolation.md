@@ -111,6 +111,9 @@ The request succeeds (the `allow AI services` rule from Section 03 covers it). N
 
 ```bash terminal-id=host
 exit
+```
+
+```bash terminal-id=host
 sbx policy log | grep -i anthropic | tail -5
 ```
 

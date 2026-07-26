@@ -205,7 +205,7 @@ scenarios:
         - { text: "Creating microVM sandbox 'shell'...", delay: boot }
         - "[OK] Workspace mounted (read-write): current directory"
         - "[OK] Network proxy attached — org policies enforced"
-        - "You are now inside the sandbox. Run the curl tests, then `exit` to tear it down."
+        - "shell@sandbox:~/workspace$   (type `exit` to tear it down)"
 
   # Any other agent: claude / codex / gemini / $$agent$$, with or without --kit.
   # GOVERNED launch. No REPL session (so you can keep running sbx/curl/exit
@@ -216,8 +216,8 @@ scenarios:
       state: { sandbox: { active: true }, workdir_denied: false, governed: true }
       output:
         - { text: "Creating microVM sandbox...", delay: boot }
-        - "[OK] Workspace mounted · network proxy attached · org policies enforced"
-        - "Agent ready inside the sandbox. Run the prompt block below to send it a request."
+        - "[OK] microVM booted · workspace mounted (rw) · network proxy attached · org policies enforced"
+        - "Agent ready inside the sandbox — type your request…"
 
   - id: exit-sandbox
     when: { command: [exit] }
@@ -536,6 +536,17 @@ scenarios:
         - "13:54:19  proxy  denied   host=paste.ee     rule=\"deny exfiltration\""
         - "13:54:21  proxy  denied   host=example.com  rule=default-deny"
 
+  # ls of the credential dirs from inside a sandbox — they were never mounted,
+  # so they don't exist in the box. Must precede the generic ls handler below.
+  - id: ls-creds-denied
+    when:
+      command: [ls]
+      args: { 0: "~/.ssh" }
+    then:
+      output:
+        - "ls: ~/.ssh: No such file or directory"
+        - "ls: ~/.aws: No such file or directory"
+
   - id: ls-logs
     when: { command: [ls] }
     then:
@@ -548,6 +559,49 @@ scenarios:
       output: ["Opening in your default browser..."]
 
   # ══ Helper scripts / direct agent binaries ═════════════════════════════════
+  # inventory.sh — the capstone's read-only blast-radius probe. On the host it
+  # finds every secret store; inside a sandbox the credential dirs were never
+  # mounted, so the [FOUND] lines are gone. Branch on whether a sandbox is
+  # active (Step 3 runs `sbx run shell .` before the in-sandbox re-run). Both
+  # must precede the generic `bash` handler below (first match wins).
+  - id: bash-inventory-sandbox
+    when:
+      command: [bash]
+      args: { 0: "inventory.sh" }
+      state: { sandbox.active: true }
+    then:
+      output:
+        - "=== What an unconstrained agent could read ==="
+        - ""
+        - "[none] ~/.ssh/               → not present in this sandbox"
+        - "[none] ~/.aws/credentials    → not present in this sandbox"
+        - "[none] ~/.docker/config.json → not present in this sandbox"
+        - ""
+        - "No SSH keys, AWS creds, or Docker config to find — only the mounted"
+        - "workspace (~/workdemo/**) was ever visible. (Network probes below use"
+        - "raw /dev/tcp, not the proxy — trust the curl test in the next step.)"
+
+  - id: bash-inventory-host
+    when:
+      command: [bash]
+      args: { 0: "inventory.sh" }
+    then:
+      output:
+        - "=== What an unconstrained agent could read ==="
+        - ""
+        - "[FOUND] SSH keys in ~/.ssh/"
+        - "  - id_ed25519"
+        - "[FOUND] AWS credentials at ~/.aws/credentials"
+        - "[FOUND] Docker config at ~/.docker/config.json (may contain registry tokens)"
+        - "[FOUND] gcloud credentials in ~/.config/gcloud/"
+        - ""
+        - "=== What an unconstrained agent could reach (network) ==="
+        - ""
+        - "[REACHABLE] api.anthropic.com:443"
+        - "[REACHABLE] hooks.slack.com:443"
+        - "[REACHABLE] paste.ee:443"
+        - "[REACHABLE] pastebin.com:443"
+
   - id: bash-setup-policies
     when: { command: [bash] }
     then:
@@ -572,24 +626,27 @@ scenarios:
     then:
       state: { governed: false }
       output:
-        - "Claude Code — running on your host, as you (no sandbox)."
-        - "Run the prompt block below to send it a request."
+        - "✻ Welcome to Claude Code"
+        - "  cwd: ~   (running on your host, as you — no sandbox)"
+        - "› type your request…"
 
   - id: codex-direct
     when: { command: [codex] }
     then:
       state: { governed: false }
       output:
-        - "Codex — running on your host, as you (no sandbox)."
-        - "Run the prompt block below to send it a request."
+        - "OpenAI Codex (CLI)"
+        - "  cwd: ~   (running on your host, as you — no sandbox)"
+        - "› type your request…"
 
   - id: gemini-direct
     when: { command: [gemini] }
     then:
       state: { governed: false }
       output:
-        - "Gemini CLI — running on your host, as you (no sandbox)."
-        - "Run the prompt block below to send it a request."
+        - "Gemini CLI"
+        - "  cwd: ~   (running on your host, as you — no sandbox)"
+        - "› type your request…"
 
   # ══ Agent prompts (matched as commands via their leading words) ════════════
   # No session is used (that would trap you and can't be exited with `exit`), so

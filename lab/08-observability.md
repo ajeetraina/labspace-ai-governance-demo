@@ -113,6 +113,9 @@ The dashboard is **not** running by default - it's only needed for this section,
 
 ```bash terminal-id=host
 cd labspace/kits/observability
+```
+
+```bash terminal-id=host
 docker compose --profile with-gateway up -d --build
 ```
 

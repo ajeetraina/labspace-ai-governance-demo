@@ -108,6 +108,9 @@ Or use the Docker apt repository:
 
 ```bash terminal-id=host
 curl -fsSL https://get.docker.com | sudo REPO_ONLY=1 sh
+```
+
+```bash terminal-id=host
 sudo apt-get install docker-sbx
 ```
 

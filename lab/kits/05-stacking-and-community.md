@@ -29,7 +29,9 @@ Pass `--kit` more than once to stack kits on the same sandbox. Rules from all ki
 ```bash terminal-id=host
 # two local kits
 sbx run claude --kit ./kits/claude-safe/ --kit ./kits/docker-review/
+```
 
+```bash terminal-id=host
 # local kit + community kit from Git
 sbx run claude \
   --kit ./kits/docker-review/ \
@@ -49,7 +51,9 @@ sbx run claude \
 ```bash terminal-id=host
 # VS Code in the browser with Claude Code extension
 sbx run claude --kit "git+https://github.com/docker/sbx-kits-contrib.git#dir=code-server"
+```
 
+```bash terminal-id=host
 # Pin to a specific tag for reproducibility
 sbx run claude --kit "git+https://github.com/docker/sbx-kits-contrib.git#ref=v0.2.0&dir=code-server"
 ```
@@ -68,6 +72,9 @@ sbx kit pack ./kits/docker-review/ -o docker-review-1.0.zip
 **OCI registry:**
 ```bash terminal-id=host
 sbx kit push ./kits/docker-review/ ghcr.io/yourorg/docker-review:1.0
+```
+
+```bash terminal-id=host
 # teammates run:
 sbx run claude --kit ghcr.io/yourorg/docker-review:1.0
 ```
