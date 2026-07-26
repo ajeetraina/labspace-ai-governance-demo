@@ -207,9 +207,73 @@ scenarios:
         - "[OK] Network proxy attached — org policies enforced"
         - "shell@sandbox:~/workspace$   (type `exit` to tear it down)"
 
-  # Any other agent: claude / codex / gemini / $$agent$$, with or without --kit.
-  # GOVERNED launch. No REPL session (so you can keep running sbx/curl/exit
-  # freely) — the prompt blocks below are matched as commands via their words.
+  # Governed launches, PER AGENT. A real `sbx run claude` boots the microVM and
+  # then launches the agent INSIDE it — so you see the sandbox come up followed
+  # by the agent's own welcome screen. The key it authenticates with is a
+  # proxy-managed sentinel and only the mounted workspace is visible. These must
+  # precede the generic sbx-run-agent fallback below (first match wins).
+  - id: sbx-run-claude
+    when:
+      command: [sbx, run]
+      args: { 0: { oneOf: [claude, claude-safe] } }
+    then:
+      state: { sandbox: { active: true }, workdir_denied: false, governed: true }
+      output:
+        - { text: "Creating microVM sandbox...", delay: boot }
+        - "[OK] microVM booted · workspace mounted (rw) · network proxy attached · org policies enforced"
+        - ""
+        - "✻ Welcome to Claude Code"
+        - "  /help for help  ·  /status for your account"
+        - "  running inside the sandbox · ANTHROPIC_API_KEY = proxy-managed sentinel"
+        - "› type your request…"
+
+  - id: sbx-run-codex
+    when:
+      command: [sbx, run]
+      args: { 0: codex }
+    then:
+      state: { sandbox: { active: true }, workdir_denied: false, governed: true }
+      output:
+        - { text: "Creating microVM sandbox...", delay: boot }
+        - "[OK] microVM booted · workspace mounted (rw) · network proxy attached · org policies enforced"
+        - ""
+        - "OpenAI Codex (CLI)"
+        - "  running inside the sandbox · OPENAI_API_KEY = proxy-managed sentinel"
+        - "› type your request…"
+
+  - id: sbx-run-gemini
+    when:
+      command: [sbx, run]
+      args: { 0: gemini }
+    then:
+      state: { sandbox: { active: true }, workdir_denied: false, governed: true }
+      output:
+        - { text: "Creating microVM sandbox...", delay: boot }
+        - "[OK] microVM booted · workspace mounted (rw) · network proxy attached · org policies enforced"
+        - ""
+        - "Gemini CLI"
+        - "  running inside the sandbox · GEMINI_API_KEY = proxy-managed sentinel"
+        - "› type your request…"
+
+  # Catalog launches `sbx run --name catalog claude` (agent name after the flag).
+  - id: sbx-run-named-claude
+    when:
+      command: [sbx, run]
+      args: { --name: { any: true } }
+    then:
+      state: { sandbox: { active: true }, workdir_denied: false, governed: true }
+      output:
+        - { text: "Creating microVM sandbox '{{ args.name }}'...", delay: boot }
+        - "[OK] microVM booted · workspace mounted (rw) · network proxy attached · org policies enforced"
+        - ""
+        - "✻ Welcome to Claude Code"
+        - "  /help for help  ·  /status for your account"
+        - "  running inside the sandbox · ANTHROPIC_API_KEY = proxy-managed sentinel"
+        - "› type your request…"
+
+  # Any other agent / $$agent$$ still unset, with or without --kit. GOVERNED
+  # launch. No REPL session (so you can keep running sbx/curl/exit freely) — the
+  # prompt blocks below are matched as commands via their words.
   - id: sbx-run-agent
     when: { command: [sbx, run] }
     then:
