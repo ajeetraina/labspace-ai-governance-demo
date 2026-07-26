@@ -320,7 +320,7 @@ sbx mcp load local-wiki
 
 The real proof is in the running agent. In the sandbox's Claude Code, run:
 
-```text no-run-button
+```text terminal-id=host
 /mcp
 ```
 

@@ -367,6 +367,17 @@ scenarios:
     then:
       output: ["[OK] MCP command completed."]
 
+  # `/mcp` — Claude Code's slash command, run INSIDE the sandbox agent. Every
+  # backend you attached is aggregated behind the one governed mcp-gateway
+  # endpoint, so the agent sees a single server. Matches Step 5's expected output.
+  - id: mcp-slash
+    when: { command: ["/mcp"] }
+    then:
+      output:
+        - "Manage MCP servers"
+        - "1 server"
+        - "  mcp-gateway · ✔ connected · 24 tools"
+
   # ══ sbx daemon / kit / exec / ls ═══════════════════════════════════════════
   - id: sbx-daemon
     when: { command: [sbx, daemon] }
